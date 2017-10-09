@@ -93,7 +93,7 @@ pred = model(feed_image)
 loss = tf.losses.softmax_cross_entropy(onehot_labels=feed_label,logits=pred)
 optimizer = tf.train.AdamOptimizer(lr)
 train_op = optimizer.minimize(loss)
-accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.arg_max(feed_label,1),tf.arg_max(pred,1)), tf.float32))
+accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(feed_label,1),tf.argmax(pred,1)), tf.float32))
 
 image_generator=keras.preprocessing.image.ImageDataGenerator(rotation_range=10.,
                                                              width_shift_range=0.1,

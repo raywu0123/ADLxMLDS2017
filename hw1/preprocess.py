@@ -35,6 +35,13 @@ def get_phone_map(path):
 	return phone_map
 phone_map = get_phone_map('./data/48_39.map')
 
+def get_phone(pred):
+	assert(pred.ndim == 1)
+	phones = []
+	for i in pred:
+		phones.append(phone_map[int2phone[i]])
+	return phones
+
 def get_label(path):
 	ark = {}
 	pre_id = ''
@@ -55,6 +62,7 @@ def get_label(path):
 def read_ark(path):
 	ark = {}
 	pre_id = ''
+	keys = []
 	with open(path) as file:
 		single_id_ark =[]
 		id = ''
@@ -63,21 +71,16 @@ def read_ark(path):
 			id = '_'.join(line[0].split('_')[:2])
 			if (id != pre_id and len(single_id_ark) != 0):
 				ark[pre_id] =  single_id_ark
+				keys.append(pre_id)
 				single_id_ark = []
 			pre_id = id
 			single_id_ark.append(np.array(line[1:], dtype=float))
 		ark[id] = single_id_ark
-	return ark
-
-def get_phone(pred):
-	assert(pred.ndim == 1)
-	phones = []
-	for i in pred:
-		phones.append(phone_map[int2phone[i]])
-	return phones
+		keys.append(pre_id)
+	return ark, keys
 
 def write_tfr(ark_path,output_path,label_path=None):
-	sequences = read_ark(ark_path)
+	sequences, _ = read_ark(ark_path)
 	label_sequences = []
 	if args.mode == 'train':
 		label_sequences = get_label(label_path)
@@ -109,7 +112,7 @@ def write_tfr(ark_path,output_path,label_path=None):
 		print("Wrote to {}".format(fp.name))
 
 def write_npy(ark_path,output_path,label_path=None):
-	sequences = read_ark(ark_path)
+	sequences, keys = read_ark(ark_path)
 	label_sequences = []
 	if args.mode == 'train':
 		label_sequences = get_label(label_path)
@@ -118,13 +121,9 @@ def write_npy(ark_path,output_path,label_path=None):
 	print('Finish reading arks and labels.')
 	all_frames = []
 	all_labels = []
-	for key in sequences:
-		for frame_id in tqdm(range(len(sequences[key]))):
-			# print(type(sequences[key]))
-			# print(type(label_sequences[key]))
-			# print(len(sequences[key]))
-			# print(len(label_sequences[key]))
-			# input()
+	for key in tqdm(keys):
+		# print(key)
+		for frame_id in range(len(sequences[key])):
 			all_frames.append(sequences[key][frame_id])
 			if args.mode == 'train':
 				all_labels.append(label_sequences[key][frame_id])
