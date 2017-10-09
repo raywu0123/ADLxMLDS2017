@@ -2,12 +2,14 @@ import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
 import argparse
+from os.path import join
+import pickle
 
 parser = argparse.ArgumentParser(description='parse ark (and lab) file to tfr.')
 parser.add_argument('--mode', type=str, default='train')
 parser.add_argument('--ark', type=str, default='./data/fbank/train.ark')
 parser.add_argument('--lab', type=str, default='')
-parser.add_argument('--output_dir', type=str, default='./data/train.tfr')
+parser.add_argument('--output_dir', type=str, default='./data')
 args = parser.parse_args()
 
 assert (not(args.mode == 'test' and args.lab != ''))
@@ -79,6 +81,8 @@ def write_tfr(ark_path,output_path,label_path=None):
 	label_sequences = []
 	if args.mode == 'train':
 		label_sequences = get_label(label_path)
+		assert (sequences.keys() == label_sequences.keys())
+
 	print('Finish reading arks and labels.')
 	def make_example(key, sequences, label_sequences=None):
 		def IntList(val):
@@ -88,15 +92,15 @@ def write_tfr(ark_path,output_path,label_path=None):
 
 		feat = {}
 		if args.mode == 'train':
-			feat[key+'_label'] = IntList(label_sequences[key])
-			assert(sequences.keys() == label_sequences.keys())
+			feat['label'] = IntList(label_sequences[key])
 
-		for frame_id, frame in enumerate(sequences[key]):
-			feat[key+'_'+str(frame_id)] = FloatList(frame)
+		feat['length'] = IntList([len(sequences[key])])
+		feat['flatten_frames'] = FloatList(np.array(sequences[key],dtype=float).reshape([-1]))
 
 		example = tf.train.Example(features=tf.train.Features(feature=feat))
 		return example
-	with open(output_path,'w') as fp:
+
+	with open(join(output_path,args.mode+'.tfr'),'w') as fp:
 		writer = tf.python_io.TFRecordWriter(fp.name)
 		for key in tqdm(sequences):
 			ex = make_example(key, sequences, label_sequences)
@@ -104,10 +108,43 @@ def write_tfr(ark_path,output_path,label_path=None):
 		writer.close()
 		print("Wrote to {}".format(fp.name))
 
+def write_npy(ark_path,output_path,label_path=None):
+	sequences = read_ark(ark_path)
+	label_sequences = []
+	if args.mode == 'train':
+		label_sequences = get_label(label_path)
+		assert (sequences.keys() == label_sequences.keys())
+
+	print('Finish reading arks and labels.')
+	all_frames = []
+	all_labels = []
+	for key in sequences:
+		for frame_id in tqdm(range(len(sequences[key]))):
+			# print(type(sequences[key]))
+			# print(type(label_sequences[key]))
+			# print(len(sequences[key]))
+			# print(len(label_sequences[key]))
+			# input()
+			all_frames.append(sequences[key][frame_id])
+			if args.mode == 'train':
+				all_labels.append(label_sequences[key][frame_id])
+
+	if args.mode =='train':
+		assert(len(all_frames) == len(all_labels))
+	print('num of frames = ', len(all_frames))
+	if args.mode == 'train':
+		with open(join(output_path, 'labels.npy'),'wb+') as file:
+			np.save(file,np.array(all_labels,dtype=int))
+			print('Wrote to {}'.format(file.name))
+	with open(join(output_path, args.mode+'frames.npy'), 'wb+') as file:
+		np.save(file,np.array(all_frames,dtype=float))
+		print('Wrote to {}'.format(file.name))
 
 if args.mode == 'train':
-	write_tfr(args.ark, args.output_dir, args.lab)
+	#write_tfr(args.ark, args.output_dir, args.lab)
+	write_npy(args.ark, args.output_dir, args.lab)
 elif args.mode == 'test':
-	write_tfr(args.ark, args.output_dir)
+	#write_tfr(args.ark, args.output_dir)
+	write_npy(args.ark, args.output_dir)
 else:
 	print('Illegal mode!')

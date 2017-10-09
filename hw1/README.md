@@ -20,10 +20,11 @@
 ```
 ### Preprocess part only
 Run the following command under `/hw1` directory.
+The program will generate `all_frames.npy` and `all_labels.npy`
+under `./data`
 ```
 ./prepocess.sh [train] [test] 
 ```
-
 ### Usage
 ```
 $ ./
