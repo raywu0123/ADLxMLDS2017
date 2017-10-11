@@ -108,7 +108,7 @@ pred = model(feed_frames)
 loss = tf.losses.softmax_cross_entropy(onehot_labels=flatten_labels, logits=pred)
 optimizer = tf.train.AdamOptimizer(lr)
 train_op = optimizer.minimize(loss)
-accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.arg_max(flatten_labels, 1), tf.arg_max(pred, 1)), tf.float32))
+accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(flatten_labels, 1), tf.argmax(pred, 1)), tf.float32))
 
 with tf.Session() as sess:
   sess.run(tf.initialize_all_variables())

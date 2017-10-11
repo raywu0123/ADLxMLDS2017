@@ -47,15 +47,6 @@ class RNN_model():
     pred = tf.layers.dense(dense3, self.n_class)
     return pred
 
-  def build_model(self, rnn_cells, frames, labels):
-    pred = self.get_pred(rnn_cells, frames)
-    if self.is_train():
-      return self.calc_loss(pred, labels)
-    elif self.is_test():
-      return pred
-    else:
-      return None
-
   def initialize(self):
     if self.rnn_type == 0:  # LSTM
       def unit_cell(fac):
@@ -101,10 +92,10 @@ class RNN_model():
 
   def calc_loss(self, pred, labels):
     loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=pred)
-    return tf.reduce_mean(loss)
+    return tf.reduce_sum(loss)
 
   def calc_acc(self, pred, labels):
-    return tf.reduce_mean(tf.cast(tf.equal(tf.arg_max(labels, 1), tf.arg_max(pred, 1)), tf.float32))
+    return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(labels, 1), tf.argmax(pred, 1)), tf.float32))
 
   def optimize(self, loss):
     tvars = tf.trainable_variables()
