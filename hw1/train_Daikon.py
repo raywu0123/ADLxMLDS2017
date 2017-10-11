@@ -46,13 +46,15 @@ def run_epoch(sess, model, args, frames, labels):
     return batch_frames, batch_labels
   '''Runs the model for one epoch'''
   batch_frames, batch_labels = get_batch(frames, labels)
+  flat_batch_labels = np.reshape(batch_labels, [-1, args.n_class])
   fetches = {}
   fetches['loss'] = model.loss
-  feed_dict = {model.frames_holder: batch_frames, model.labels_holder: batch_labels}
+  fetches['acc'] = model.acc
+  feed_dict = {model.frames_holder: batch_frames, model.labels_holder: flat_batch_labels}
   if model.is_train():
     fetches['eval'] = model.eval
   vals = sess.run(fetches, feed_dict=feed_dict)
-  return vals['loss']
+  return vals['loss'],vals['acc']
 
 if __name__ == '__main__':
   args = config.parse_arguments()
@@ -81,6 +83,6 @@ if __name__ == '__main__':
     with sv.managed_session(config=config) as sess:
       global_step = sess.run(train_model.step)
       for i in range(global_step+1, args.max_epoch+1):
-        train_loss = run_epoch(sess, train_model, train_args, frames, labels)
+        train_loss, acc = run_epoch(sess, train_model, train_args, frames, labels)
         if i % args.info_epoch == 0:
-          print('Epoch: %d Training Loss: %.5f'%(i, train_loss))
+          print('Epoch: %d Training Loss: %.5f, acc= %.5f'%(i, train_loss, acc))

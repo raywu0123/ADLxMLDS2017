@@ -11,9 +11,12 @@ class RNN_model():
     if self.is_train():
       with tf.variable_scope('build'):
         self._frames_holder = tf.placeholder(tf.float32, [None, self.window_size, self.dim])
-        self._labels_holder = tf.placeholder(tf.float32, [None, self.window_size, self.n_class])
-        self._loss = self.build_model(rnn_cells, self._frames_holder, self._labels_holder)
+        self._labels_holder = tf.placeholder(tf.float32, [None, self.n_class])
+
+        self._loss = self.calc_loss(self._frames_holder, self._labels_holder)
         self._loss /= self.batch_size
+
+        self._acc = self.calc_acc(self._frames_holder, self._labels_holder)
       self._eval = self.optimize(self._loss)
       _vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
       for _var in _vars:
@@ -89,8 +92,10 @@ class RNN_model():
 
   def calc_loss(self, pred, labels):
     loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=pred)
-    return tf.reduce_sum(loss)
+    return tf.reduce_mean(loss)
 
+  def calc_acc(self, pred, labels):
+    return tf.reduce_mean(tf.cast(tf.equal(tf.arg_max(labels, 1), tf.arg_max(pred, 1)), tf.float32))
   def optimize(self, loss):
     tvars = tf.trainable_variables()
     grads, _ = tf.clip_by_global_norm(tf.gradients(loss, tvars),
@@ -106,6 +111,8 @@ class RNN_model():
   def pred(self): return self._pred
   @property
   def loss(self): return self._loss
+  @property
+  def loss(self): return self._acc
   @property
   def eval(self): return self._eval
   @property
