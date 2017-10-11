@@ -4,12 +4,12 @@ echo "Usage : ./go.sh [pretrain] [pretest] [train] [test]"
 
 #sorted alphabetically
 batch_size=512
-hidden_size=512
+hidden_size=64
 info_epoch=1
 init_scale=0.01
 keep_prob=1
-learning_rate=0.003
-decay_steps=200000
+learning_rate=0.001
+decay_steps=20
 decay_rate=1.0
 log_dir=logs
 max_epoch=200000
