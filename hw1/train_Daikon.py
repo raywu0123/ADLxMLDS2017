@@ -7,14 +7,52 @@ import numpy as np
 import copy
 from model import RNN_model
 import config
+import random
+from tensorflow.contrib import keras
 
-def run_epoch(sess, model):
+def run_epoch(sess, model, args):
+  def get_batch():
+    def load_data(mode):
+      path = ''
+      if mode == 'train':
+        path = './data/trainframes.npy'
+        file = open('./data/labels.npy', 'rb')
+        labels = np.load(file)
+        file.close()
+      elif mode == 'test':
+        path = './data/testframes.npy'
+        labels = None
+
+      file = open(path, 'rb')
+      frames = np.load(file)
+      file.close()
+
+      print('Data loaded.')
+      return frames, labels
+    def get_single_ex(frames, labels):
+      start_id = random.randint(0, len(frames) - args.window_size - 1)
+      ex_frames = frames[start_id:start_id + args.window_size]
+      ex_labels = labels[start_id:start_id + args.window_size]
+      return ex_frames, ex_labels
+    frames, labels = load_data(args.mode)
+
+
+
+    batch_frames = np.zeros([args.batch_size, args.window_size, args.dim], dtype=float)
+    batch_labels = np.zeros([args.batch_size, args.window_size, args.n_class], dtype=float)
+    for idx in range(args.batch_size):
+      ex_frames, ex_labels = get_single_ex(frames, labels)
+      batch_frames[idx] = ex_frames.copy()
+      batch_labels[idx] = keras.utils.to_categorical(ex_labels, args.n_class).copy()
+    return batch_frames, batch_labels
   '''Runs the model for one epoch'''
+  batch_frames, batch_labels = get_batch()
   fetches = {}
   fetches['loss'] = model.loss
+  feed_dict = {model.frames_holder: batch_frames, model.labels_holder: batch_labels}
   if model.is_train():
     fetches['eval'] = model.eval
-  vals = sess.run(fetches)
+  vals = sess.run(fetches, feed_dict=feed_dict)
   return vals['loss']
 
 if __name__ == '__main__':
@@ -42,6 +80,6 @@ if __name__ == '__main__':
     with sv.managed_session(config=config) as sess:
       global_step = sess.run(train_model.step)
       for i in range(global_step+1, args.max_epoch+1):
-        train_loss = run_epoch(sess, train_model)
+        train_loss = run_epoch(sess, train_model, train_args)
         if i % args.info_epoch == 0:
           print('Epoch: %d Training Loss: %.5f'%(i, train_loss))

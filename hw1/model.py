@@ -10,8 +10,9 @@ class RNN_model():
     self._step = tf.contrib.framework.get_or_create_global_step()
     if self.is_train():
       with tf.variable_scope('build'):
-        batch_frames, batch_labels = self.get_batch()
-        self._loss = self.build_model(rnn_cells, batch_frames, batch_labels)
+        self._frames_holder = tf.placeholder(tf.float32, [None, self.window_size, self.dim])
+        self._labels_holder = tf.placeholder(tf.float32, [None, self.window_size, self.n_class])
+        self._loss = self.build_model(rnn_cells, self._frames_holder, self._labels_holder)
         self._loss /= self.batch_size
       self._eval = self.optimize(self._loss)
       _vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
@@ -68,53 +69,20 @@ class RNN_model():
                                           for _ in range(self.rnn_layer_num)])
     return rnn_cells
 
-  def get_batch(self):
-    def load_data(mode):
-      path = ''
-      if mode == 'train':
-        path = './data/trainframes.npy'
-        file = open('./data/labels.npy', 'rb')
-        labels = np.load(file)
-        file.close()
-      elif mode == 'test':
-        path = './data/testframes.npy'
-        labels = None
-
-      file = open(path, 'rb')
-      frames = np.load(file)
-      file.close()
-
-      print('Data loaded.')
-      return frames, labels
-    frames, labels = load_data(self.mode)
-
-    def get_single_ex(frames, labels):
-      start_id = random.randint(0, len(frames) - self.window_size - 1)
-      ex_frames = frames[start_id:start_id + self.window_size]
-      ex_labels = labels[start_id:start_id + self.window_size]
-      return ex_frames, ex_labels
-
-    batch_frames = np.zeros([self.batch_size, self.window_size, self.dim], dtype=float)
-    batch_labels = np.zeros([self.batch_size, self.window_size, self.n_class], dtype=float)
-    for idx in range(self.batch_size):
-      ex_frames, ex_labels = get_single_ex(frames, labels)
-      batch_frames[idx] = ex_frames.copy()
-      batch_labels[idx] = keras.utils.to_categorical(ex_labels, self.n_class).copy()
-    return batch_frames, batch_labels
-
   def is_train(self): return self.mode == 'train'
   def is_valid(self): return self.mode == 'valid'
   def is_test(self): return self.mode == 'test'
 
   def rnn_output(self, inp, f_cells, b_cells, scope):
+    seq_len = tf.constant(self.batch_size, dtype=tf.int64, shape=[self.batch_size])
     if self.use_bidirection:
-      oup, st = tf.nn.bidirectional_dynamic_rnn(f_cells, b_cells, inp,
+      oup, st = tf.nn.bidirectional_dynamic_rnn(f_cells, b_cells, inp, seq_len,
                                                dtype=tf.float32, scope=scope)
       oup = tf.concat(oup, -1)
       st = tf.concat(st, -1)
     else:
       oup, st =\
-        tf.nn.dynamic_rnn(f_cells, inp, dtype=tf.float32, scope=scope)
+        tf.nn.dynamic_rnn(f_cells, inp, seq_len, dtype=tf.float32, scope=scope)
     oup =\
       tf.reshape(oup, [self.batch_size, -1, self.fac * f_cells.state_size[0]])
     return oup, st[-1]
@@ -142,3 +110,7 @@ class RNN_model():
   def eval(self): return self._eval
   @property
   def step(self): return self._step
+  @property
+  def frames_holder(self): return self._frames_holder
+  @property
+  def labels_holder(self): return self._labels_holder

@@ -39,12 +39,12 @@ do
       --decay_steps     $decay_steps \
       --decay_rate      $decay_rate \
       --log_dir         $log_dir   \
-      --max_epoch       $max_epochs \
+      --max_epoch       $max_epoch \
       --max_grad_norm   $max_grad_norm  \
       --rnn_layer_num   $rnn_layer_num  \
       --rnn_type        $rnn_type  \
       --save_model_secs  $save_model_secs    \
-      --train_file      $train_fil   \
+      --train_file      $train_file   \
       --window_size     $window_size \
       --n_class         $n_class \
       --dim             $dim \
