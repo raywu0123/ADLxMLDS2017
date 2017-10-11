@@ -10,33 +10,32 @@ import config
 import random
 from tensorflow.contrib import keras
 
-def run_epoch(sess, model, args):
-  def get_batch():
-    def load_data(mode):
-      path = ''
-      if mode == 'train':
-        path = './data/trainframes.npy'
-        file = open('./data/labels.npy', 'rb')
-        labels = np.load(file)
-        file.close()
-      elif mode == 'test':
-        path = './data/testframes.npy'
-        labels = None
 
-      file = open(path, 'rb')
-      frames = np.load(file)
-      file.close()
+def load_data(mode):
+  path = ''
+  if mode == 'train':
+    path = './data/trainframes.npy'
+    file = open('./data/labels.npy', 'rb')
+    labels = np.load(file)
+    file.close()
+  elif mode == 'test':
+    path = './data/testframes.npy'
+    labels = None
 
-      print('Data loaded.')
-      return frames, labels
+  file = open(path, 'rb')
+  frames = np.load(file)
+  file.close()
+
+  print('Data loaded.')
+  return frames, labels
+
+def run_epoch(sess, model, args, frames, labels):
+  def get_batch(frames, labels):
     def get_single_ex(frames, labels):
       start_id = random.randint(0, len(frames) - args.window_size - 1)
       ex_frames = frames[start_id:start_id + args.window_size]
       ex_labels = labels[start_id:start_id + args.window_size]
       return ex_frames, ex_labels
-    frames, labels = load_data(args.mode)
-
-
 
     batch_frames = np.zeros([args.batch_size, args.window_size, args.dim], dtype=float)
     batch_labels = np.zeros([args.batch_size, args.window_size, args.n_class], dtype=float)
@@ -46,7 +45,7 @@ def run_epoch(sess, model, args):
       batch_labels[idx] = keras.utils.to_categorical(ex_labels, args.n_class).copy()
     return batch_frames, batch_labels
   '''Runs the model for one epoch'''
-  batch_frames, batch_labels = get_batch()
+  batch_frames, batch_labels = get_batch(frames, labels)
   fetches = {}
   fetches['loss'] = model.loss
   feed_dict = {model.frames_holder: batch_frames, model.labels_holder: batch_labels}
@@ -77,9 +76,11 @@ if __name__ == '__main__':
     sv = tf.train.Supervisor(logdir=args.log_dir,
                              save_model_secs=args.save_model_secs)
 
+    frames, labels = load_data(train_args.mode)
+
     with sv.managed_session(config=config) as sess:
       global_step = sess.run(train_model.step)
       for i in range(global_step+1, args.max_epoch+1):
-        train_loss = run_epoch(sess, train_model, train_args)
+        train_loss = run_epoch(sess, train_model, train_args, frames, labels)
         if i % args.info_epoch == 0:
           print('Epoch: %d Training Loss: %.5f'%(i, train_loss))
