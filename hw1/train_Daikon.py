@@ -79,11 +79,10 @@ if __name__ == '__main__':
                              save_model_secs=args.save_model_secs)
 
     frames, labels = load_data(train_args.mode)
-    cat_labels = keras.utils.to_categorical(labels, train_args.n_class)
 
     with sv.managed_session(config=config) as sess:
       global_step = sess.run(train_model.step)
       for i in range(global_step+1, args.max_epoch+1):
-        train_loss, acc = run_epoch(sess, train_model, train_args, frames, cat_labels)
+        train_loss, acc = run_epoch(sess, train_model, train_args, frames, labels)
         if i % args.info_epoch == 0:
           print('Epoch: %d Training Loss: %.5f, acc= %.5f'%(i, train_loss, acc))

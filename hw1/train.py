@@ -98,7 +98,7 @@ def model(feed_frames):
 
 
 frames, labels = load_data('train')
-cat_labels = keras.utils.to_categorical(labels, n_class)
+# cat_labels = keras.utils.to_categorical(labels, n_class)
 
 feed_frames = tf.placeholder(tf.float32, [None, window_size, dim])
 feed_labels = tf.placeholder(tf.float32, [None, window_size, n_class])
