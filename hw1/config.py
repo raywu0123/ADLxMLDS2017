@@ -116,4 +116,5 @@ def parse_arguments():
   argparser.add_argument('--n_class', type=int, default=dft_n_class)
   argparser.add_argument('--window_size', type=int, default=dft_window_size)
   argparser.add_argument('--dim', type=int, default=dft_dim)
+
   return argparser.parse_args()
