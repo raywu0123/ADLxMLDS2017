@@ -29,27 +29,28 @@ for var in "$@"
 do
   if [ "$var" == "train" ]
   then
-    ./train.py \
-      --batch_size      batch_size  \
-      --hidden_size     hidden_size    \
-      --info_epoch      info_epoch    \
-      --init_scale      init_scale \
-      --keep_prob       keep_prob  \
-      --learning_rate   learning_rate \
-      --decay_steps     decay_steps \
-      --decay_rate      decay_rate \
-      --log_dir         log_dir   \
-      --max_epoch       max_epochs \
-      --max_grad_norm   max_grad_norm  \
-      --rnn_layer_num   rnn_layer_num  \
-      --rnn_type        rnn_type=1  \
-      --save_model_secs  save_model_secs    \
-      --train_file      train_fil   \
-      --window_size     window_size \
-      --n_class         n_class \
-      --dim             dim \
+    ./train_Daikon.py \
+      --batch_size      $batch_size  \
+      --hidden_size     $hidden_size    \
+      --info_epoch      $info_epoch    \
+      --init_scale      $init_scale \
+      --keep_prob       $keep_prob  \
+      --learning_rate   $learning_rate \
+      --decay_steps     $decay_steps \
+      --decay_rate      $decay_rate \
+      --log_dir         $log_dir   \
+      --max_epoch       $max_epochs \
+      --max_grad_norm   $max_grad_norm  \
+      --rnn_layer_num   $rnn_layer_num  \
+      --rnn_type        $rnn_type  \
+      --save_model_secs  $save_model_secs    \
+      --train_file      $train_fil   \
+      --window_size     $window_size \
+      --n_class         $n_class \
+      --dim             $dim \
       $use_bidirection
   elif [ "$var" == "test" ]
+    then
      echo "test mode is not finished yet."
   fi
 done
