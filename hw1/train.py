@@ -90,7 +90,7 @@ cat_labels = keras.utils.to_categorical(labels, n_class)
 
 feed_frames = tf.placeholder(tf.float32,[None, window_size, dim])
 feed_labels = tf.placeholder(tf.float32,[None, window_size, n_class])
-flatten_labels = tf.reshape(feed_labels, [-1,n_class])
+flatten_labels = tf.reshape(feed_labels, [-1, n_class])
 pred = model(feed_frames)
 
 loss = tf.losses.softmax_cross_entropy(onehot_labels=flatten_labels, logits=pred)
@@ -100,7 +100,7 @@ accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.arg_max(flatten_labels,1),tf.arg_m
 
 with tf.Session() as sess:
 	sess.run(tf.initialize_all_variables())
-	for i in tqdm(range(n_epoch)):
+	for i in range(n_epoch):
 		batch_frames, batch_labels = get_batch(frames, labels)
 		sess.run(train_op, feed_dict={feed_frames: batch_frames,
 									  feed_labels: batch_labels})
