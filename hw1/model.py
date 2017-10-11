@@ -91,8 +91,7 @@ class RNN_model():
     return oup, st[-1]
 
   def calc_loss(self, pred, labels):
-    loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=pred)
-    return tf.reduce_sum(loss)
+    return tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=pred)
 
   def calc_acc(self, pred, labels):
     return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(labels, 1), tf.argmax(pred, 1)), tf.float32))

@@ -3,7 +3,7 @@
 echo "Usage : ./go.sh [pretrain] [pretest] [train] [test]"
 
 #sorted alphabetically
-batch_size=512
+batch_size=16
 hidden_size=64
 info_epoch=1
 init_scale=0.01
