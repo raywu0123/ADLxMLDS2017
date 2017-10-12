@@ -48,7 +48,7 @@ with tf.Graph().as_default():
     global_step = sess.run(test_model.step)
     print('global step = {}'.format(global_step))
 
-    batch_frames = test_frames[:args.window_size, :]
+    batch_frames = np.expand_dims(test_frames[:args.window_size, :], 0)
     feed_dict = {test_model.frames_holder: batch_frames}
     prediction = sess.run(test_model.pred, feed_dict=feed_dict)
     print(prediction.shape)
