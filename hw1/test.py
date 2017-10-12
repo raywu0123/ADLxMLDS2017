@@ -34,6 +34,7 @@ with tf.Graph().as_default():
   with tf.name_scope('test'):
     test_args = copy.deepcopy(args)
     test_args.mode = 'test'
+    test_args.batch_size = 1
   with tf.variable_scope('model', reuse=None):
     test_model = RNN_model(args=test_args)
 
