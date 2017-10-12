@@ -34,8 +34,8 @@ args = config.parse_arguments()
 
 
 feed_frames = tf.placeholder(tf.float32, [None, args.window_size, args.dim])
-feed_labels = tf.placeholder(tf.float32, [None, args.window_size, 1])
-flatten_labels = tf.reshape(feed_labels, [-1])
+feed_labels = tf.placeholder(tf.float32, [None, args.window_size])
+
 pred = model(feed_frames)
 
 test_frames, _ = load_data('test')
@@ -45,7 +45,7 @@ saver = tf.train.Saver()
 
 with tf.Session() as sess:
   saver.restore(sess, './logs/model.ckpt')
-  batch_frames = np.array([test_frames[:args.window_size]])
+  batch_frames = np.expand_dims(test_frames[:args.window_size], 0)
   prediction = sess.run([pred], {feed_frames: batch_frames})
   print("prediction.shape = ", prediction.shape)
   print(prediction[:3])
