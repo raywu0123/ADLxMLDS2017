@@ -31,7 +31,6 @@ args.fac = int(args.use_bidirection) + 1
 
 
 with tf.Graph().as_default():
-  initializer = tf.random_uniform_initializer(-args.init_scale, args.init_scale)
   with tf.name_scope('test'):
     test_args = copy.deepcopy(args)
     test_args.mode = 'test'
