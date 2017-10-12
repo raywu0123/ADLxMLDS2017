@@ -4,7 +4,6 @@ import random
 from tensorflow.contrib import keras
 import config
 
-
 args = config.parse_arguments()
 
 def load_data(mode='train'):
@@ -33,7 +32,7 @@ def get_batch(frames, labels):
     return ex_frames, ex_labels
 
   batch_frames = np.zeros([args.batch_size, args.window_size, args.dim], dtype=float)
-  batch_labels = np.zeros([args.batch_size, args.window_size, args.n_class], dtype=float)
+  batch_labels = np.zeros([args.batch_size, args.window_size], dtype=float)
   for idx in range(args.batch_size):
     ex_frames, ex_labels = get_single_ex(frames, labels)
     batch_frames[idx] = ex_frames.copy()
@@ -54,7 +53,7 @@ def model(feed_frames):
 frames, labels = load_data('train')
 
 feed_frames = tf.placeholder(tf.float32, [None, args.window_size, args.dim])
-feed_labels = tf.placeholder(tf.float32, [None, args.window_size, 1])
+feed_labels = tf.placeholder(tf.float32, [None, args.window_size])
 pred = model(feed_frames)
 
 flatten_labels = tf.reshape(feed_labels, [-1])
@@ -64,12 +63,9 @@ optimizer = tf.train.AdamOptimizer(args.learning_rate)
 train_op = optimizer.minimize(loss)
 accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(one_hot_labels, 1), tf.argmax(pred, 1)), tf.float32))
 
-sv = tf.train.Supervisor(logdir=args.log_dir, save_model_secs=args.save_model_secs)
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-config.graph_options.optimizer_options.global_jit_level = \
-  tf.OptimizerOptions.ON_1
-with sv.managed_session(config=config) as sess:
+saver = tf.train.Saver()
+
+with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
   for i in range(args.max_epoch):
     batch_frames, batch_labels = get_batch(frames, labels)
@@ -80,4 +76,5 @@ with sv.managed_session(config=config) as sess:
       print(i, sess.run([loss, accuracy], feed_dict={feed_frames: batch_frames,
                                                      feed_labels: batch_labels}))
 
-
+      save_path = saver.save(sess, './logs/model.ckpt')
+      print("Model saved in file: %s" % save_path)

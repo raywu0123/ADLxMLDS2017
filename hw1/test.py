@@ -31,6 +31,7 @@ def model(feed_frames):
 
 args = config.parse_arguments()
 
+
 feed_frames = tf.placeholder(tf.float32, [None, args.window_size, args.dim])
 feed_labels = tf.placeholder(tf.float32, [None, args.window_size, 1])
 flatten_labels = tf.reshape(feed_labels, [-1])
@@ -39,12 +40,10 @@ pred = model(feed_frames)
 test_frames, _ = load_data('test')
 print(test_frames.shape)
 
-sv = tf.train.Supervisor(logdir=args.log_dir)
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-config.graph_options.optimizer_options.global_jit_level = \
-  tf.OptimizerOptions.ON_1
-with sv.managed_session(config=config) as sess:
+saver = tf.train.Saver()
+
+with tf.Session() as sess:
+  saver.restore(sess, './logs/model.ckpt')
   batch_frames = test_frames[:args.batch_size]
   prediction = sess.run([pred], {feed_frames: batch_frames})
   print("prediction.shape = ", prediction.shape)
