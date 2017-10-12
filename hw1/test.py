@@ -50,6 +50,6 @@ with tf.Graph().as_default():
 
     batch_frames = test_frames[:args.window_size, :]
     feed_dict = {test_model.frames_holder: batch_frames}
-    prediction = sess.run(test_model.pred)
+    prediction = sess.run(test_model.pred, feed_dict=feed_dict)
     print(prediction.shape)
     print(prediction[0])
