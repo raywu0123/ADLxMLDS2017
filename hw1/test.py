@@ -33,7 +33,7 @@ args = config.parse_arguments()
 
 feed_frames = tf.placeholder(tf.float32, [None, args.window_size, args.dim])
 feed_labels = tf.placeholder(tf.float32, [None, args.window_size, 1])
-flatten_labels = tf.reshape(feed_labels, [-1, 1])
+flatten_labels = tf.reshape(feed_labels, [-1])
 pred = model(feed_frames)
 
 test_frames, _ = load_data('test')
