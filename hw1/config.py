@@ -1,15 +1,15 @@
 import argparse
 
 dft_rnn_type = 1 # 0: LSTM, 1: GRU
-dft_hidden_size = 350
-dft_batch_size = 700
-dft_rnn_layer_num = 2
-dft_max_grad_norm = 2
+dft_hidden_size = 64
+dft_batch_size = 512
+dft_rnn_layer_num = 1
+dft_max_grad_norm = 1
 dft_keep_prob = 1
 dft_init_scale = 0.001
 dft_max_epoch = 30000
-dft_info_epoch = 1
-dft_save_model_secs = 1200
+dft_info_epoch = 10
+dft_save_model_secs = 120
 dft_learning_rate = 0.0001
 dft_decay_steps=10000
 dft_decay_rate= 0.99
