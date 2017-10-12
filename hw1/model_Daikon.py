@@ -16,7 +16,6 @@ class RNN_model():
 
         pred = self.get_pred(rnn_cells, self._frames_holder)
         self._loss = self.calc_loss(pred, self._labels_holder)
-        self._loss /= self.batch_size
         self._acc = self.calc_acc(pred, self._labels_holder)
 
       self._eval = self.optimize(self._loss)

@@ -40,9 +40,10 @@ def get_batch(frames, labels):
   return batch_frames, batch_labels
 
 def model(feed_frames):
-  cell = tf.contrib.rnn.GRUCell(num_units=args.hidden_size, scope='rnn')
-  init_state = cell.zero_state(args.batch_size, dtype=tf.float32, scope='rnn')
-  outputs, _ = tf.nn.dynamic_rnn(cell, feed_frames, initial_state=init_state, time_major=False, scope='rnn')
+  with tf.variable_scope("rnn"):
+    cell = tf.contrib.rnn.GRUCell(num_units=args.hidden_size)
+    init_state = cell.zero_state(args.batch_size, dtype=tf.float32)
+    outputs, _ = tf.nn.dynamic_rnn(cell, feed_frames, initial_state=init_state, time_major=False)
   flatten_outputs = tf.reshape(outputs, [-1, args.hidden_size], name='flatten_outputs')
   dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu, name='dense1')
   dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu, name='dense2')
