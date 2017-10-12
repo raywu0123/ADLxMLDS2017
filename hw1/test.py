@@ -47,7 +47,6 @@ with tf.Graph().as_default():
   with sv.managed_session(config=config) as sess:
     global_step = sess.run(test_model.step)
     print('global step = {}'.format(global_step))
-    print('model_mode= ', sess.run(test_model.mode))
 
     batch_frames = test_frames[:args.window_size, :]
     feed_dict = {test_model.frames_holder: batch_frames}
