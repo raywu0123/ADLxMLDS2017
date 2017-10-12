@@ -128,4 +128,5 @@ class RNN_model():
   @property
   def labels_holder(self):  return self._labels_holder
 
+  @property
   def pred(self): return self._pred
