@@ -40,14 +40,14 @@ def get_batch(frames, labels):
   return batch_frames, batch_labels
 
 def model(feed_frames):
-  cell = tf.contrib.rnn.GRUCell(num_units=args.hidden_size)
-  init_state = cell.zero_state(args.batch_size, dtype=tf.float32)
-  outputs, _ = tf.nn.dynamic_rnn(cell, feed_frames, initial_state=init_state, time_major=False)
-  flatten_outputs = tf.reshape(outputs, [-1, args.hidden_size])
-  dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
-  dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
-  dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)
-  pred = tf.layers.dense(dense3, args.n_class)
+  cell = tf.contrib.rnn.GRUCell(num_units=args.hidden_size, scope='rnn')
+  init_state = cell.zero_state(args.batch_size, dtype=tf.float32, scope='rnn')
+  outputs, _ = tf.nn.dynamic_rnn(cell, feed_frames, initial_state=init_state, time_major=False, scope='rnn')
+  flatten_outputs = tf.reshape(outputs, [-1, args.hidden_size], name='flatten_outputs')
+  dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu, name='dense1')
+  dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu, name='dense2')
+  dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu, name='dense3')
+  pred = tf.layers.dense(dense3, args.n_class, name='pred')
   return pred
 
 frames, labels = load_data('train')
@@ -55,14 +55,6 @@ frames, labels = load_data('train')
 feed_frames = tf.placeholder(tf.float32, [None, args.window_size, args.dim])
 feed_labels = tf.placeholder(tf.float32, [None, args.window_size])
 
-cell = tf.contrib.rnn.GRUCell(num_units=args.hidden_size)
-init_state = cell.zero_state(args.batch_size, dtype=tf.float32)
-outputs, _ = tf.nn.dynamic_rnn(cell, feed_frames, initial_state=init_state, time_major=False)
-flatten_outputs = tf.reshape(outputs, [-1, args.hidden_size])
-dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
-dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
-dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)
-pred = tf.layers.dense(dense3, args.n_class)
 
 flatten_labels = tf.reshape(feed_labels, [-1])
 one_hot_labels = tf.one_hot(tf.cast(flatten_labels, dtype=tf.int64), args.n_class)
@@ -70,6 +62,8 @@ loss = tf.losses.softmax_cross_entropy(onehot_labels=one_hot_labels, logits=pred
 optimizer = tf.train.AdamOptimizer(args.learning_rate)
 train_op = optimizer.minimize(loss)
 accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(one_hot_labels, 1), tf.argmax(pred, 1)), tf.float32))
+
+pred = model(feed_frames)
 
 saver = tf.train.Saver()
 
