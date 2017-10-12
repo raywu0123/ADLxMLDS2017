@@ -14,9 +14,9 @@ class RNN_model():
         self._frames_holder = tf.placeholder(tf.float32, [None, self.window_size, self.dim])
         self._labels_holder = tf.placeholder(tf.float32, [None, self.n_class])
 
-        pred = self.get_pred(rnn_cells, self._frames_holder)
-        self._loss = self.calc_loss(pred, self._labels_holder)
-        self._acc = self.calc_acc(pred, self._labels_holder)
+        self._pred = self.get_pred(rnn_cells, self._frames_holder)
+        self._loss = self.calc_loss(self._pred, self._labels_holder)
+        self._acc = self.calc_acc(self._pred, self._labels_holder)
 
       self._eval = self.optimize(self._loss)
       _vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
@@ -106,30 +106,24 @@ class RNN_model():
     opt = tf.train.AdamOptimizer(self.learning_rate)
     return opt.apply_gradients(zip(grads, tvars), global_step=self._step)
 
-  @property
-  def pred(self):
-    return self._pred
 
   @property
-  def loss(self):
-    return self._loss
+  def loss(self): return self._loss
 
   @property
-  def acc(self):
-    return self._acc
+  def acc(self):  return self._acc
 
   @property
-  def eval(self):
-    return self._eval
+  def eval(self): return self._eval
 
   @property
   def step(self):
     return self._step
 
   @property
-  def frames_holder(self):
-    return self._frames_holder
+  def frames_holder(self):  return self._frames_holder
 
   @property
-  def labels_holder(self):
-    return self._labels_holder
+  def labels_holder(self):  return self._labels_holder
+
+  def pred(self): return self._pred
