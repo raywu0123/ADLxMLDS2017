@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import random
+from tensorflow.contrib import keras
 import config
 
 
@@ -36,9 +37,8 @@ def get_batch(frames, labels):
   for idx in range(args.batch_size):
     ex_frames, ex_labels = get_single_ex(frames, labels)
     batch_frames[idx] = ex_frames.copy()
-    batch_labels[idx] = tf.one_hot(ex_labels, args.n_class).copy()
+    batch_labels[idx] = keras.utils.to_categorical(ex_labels, args.n_class).copy()
   return batch_frames, batch_labels
-
 
 def model(feed_frames):
   cell = tf.contrib.rnn.GRUCell(num_units=args.hidden_size)
@@ -66,12 +66,12 @@ accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(flatten_labels, 1), tf.argm
 
 with tf.Session() as sess:
   sess.run(tf.initialize_all_variables())
-  for i in range(args.n_epoch):
+  for i in range(args.max_epoch):
     batch_frames, batch_labels = get_batch(frames, labels)
     sess.run(train_op, feed_dict={feed_frames: batch_frames,
                                   feed_labels: batch_labels})
 
-    if (i + 1) % 10 == 0:
+    if (i + 1) % args.info_epoch == 0:
       print(i, sess.run([loss, accuracy], feed_dict={feed_frames: batch_frames,
                                                      feed_labels: batch_labels}))
 
