@@ -25,7 +25,10 @@ class RNN_model():
         print('{:85} {}'.format(name, _var.get_shape()))
     elif self.is_test():
       with tf.variable_scope('build'):
-        pass
+        with tf.variable_scope('build'):
+          self._frames_holder = tf.placeholder(tf.float32, [None, self.window_size, self.dim])
+          self._labels_holder = tf.placeholder(tf.float32, [None, self.n_class])
+          self._pred = self.get_pred(rnn_cells, self._frames_holder)
     else:  # validation
       with tf.variable_scope('build'):
         pass
