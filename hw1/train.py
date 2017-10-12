@@ -64,7 +64,7 @@ optimizer = tf.train.AdamOptimizer(args.learning_rate)
 train_op = optimizer.minimize(loss)
 accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(one_hot_labels, 1), tf.argmax(pred, 1)), tf.float32))
 
-sv = tf.Supervisor(logdir=args.log_dir, save_model_secs=args.save_model_secs)
+sv = tf.train.Supervisor(logdir=args.log_dir, save_model_secs=args.save_model_secs)
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 config.graph_options.optimizer_options.global_jit_level = \
