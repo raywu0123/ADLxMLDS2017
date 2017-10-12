@@ -6,7 +6,7 @@ echo "Usage : ./go.sh [pretrain] [pretest] [train] [test]"
 batch_size=512
 hidden_size=64
 info_epoch=10
-init_scale=0.01
+init_scale=0.1
 keep_prob=1
 learning_rate=0.001
 decay_steps=20
