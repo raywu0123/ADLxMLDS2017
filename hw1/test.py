@@ -1,5 +1,6 @@
 import tensorflow as tf
 import config
+import numpy as np
 
 def load_data(mode='train'):
   path = ''
@@ -44,7 +45,7 @@ saver = tf.train.Saver()
 
 with tf.Session() as sess:
   saver.restore(sess, './logs/model.ckpt')
-  batch_frames = test_frames[:args.batch_size]
+  batch_frames = np.array([test_frames[:args.window_size]])
   prediction = sess.run([pred], {feed_frames: batch_frames})
   print("prediction.shape = ", prediction.shape)
   print(prediction[:3])

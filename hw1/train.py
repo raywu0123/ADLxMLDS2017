@@ -77,4 +77,3 @@ with tf.Session() as sess:
                                                      feed_labels: batch_labels}))
 
       save_path = saver.save(sess, './logs/model.ckpt')
-      print("Model saved in file: %s" % save_path)
