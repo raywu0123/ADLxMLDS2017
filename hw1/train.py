@@ -57,10 +57,8 @@ feed_frames = tf.placeholder(tf.float32, [None, args.window_size, args.dim])
 feed_labels = tf.placeholder(tf.float32, [None, args.window_size, 1])
 pred = model(feed_frames)
 
-
-
 flatten_labels = tf.reshape(feed_labels, [-1, 1])
-one_hot_labels = tf.one_hot(flatten_labels, args.n_class)
+one_hot_labels = tf.one_hot(tf.cast(flatten_labels, dtype=tf.int64), args.n_class)
 loss = tf.losses.softmax_cross_entropy(onehot_labels=one_hot_labels, logits=pred)
 optimizer = tf.train.AdamOptimizer(args.learning_rate)
 train_op = optimizer.minimize(loss)
