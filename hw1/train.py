@@ -37,7 +37,7 @@ def get_batch(frames, labels):
   for idx in range(args.batch_size):
     ex_frames, ex_labels = get_single_ex(frames, labels)
     batch_frames[idx] = ex_frames.copy()
-    batch_labels[idx] = keras.utils.to_categorical(ex_labels, args.n_class).copy()
+    batch_labels[idx] = ex_labels.copy()
   return batch_frames, batch_labels
 
 def model(feed_frames):
@@ -51,21 +51,28 @@ def model(feed_frames):
   pred = tf.layers.dense(dense3, args.n_class)
   return pred
 
-
 frames, labels = load_data('train')
 
 feed_frames = tf.placeholder(tf.float32, [None, args.window_size, args.dim])
-feed_labels = tf.placeholder(tf.float32, [None, args.window_size, args.n_class])
-flatten_labels = tf.reshape(feed_labels, [-1, args.n_class])
+feed_labels = tf.placeholder(tf.float32, [None, args.window_size, 1])
 pred = model(feed_frames)
 
-loss = tf.losses.softmax_cross_entropy(onehot_labels=flatten_labels, logits=pred)
+
+
+flatten_labels = tf.reshape(feed_labels, [-1, 1])
+one_hot_labels = tf.one_hot(flatten_labels, args.n_class)
+loss = tf.losses.softmax_cross_entropy(onehot_labels=one_hot_labels, logits=pred)
 optimizer = tf.train.AdamOptimizer(args.learning_rate)
 train_op = optimizer.minimize(loss)
-accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(flatten_labels, 1), tf.argmax(pred, 1)), tf.float32))
+accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(one_hot_labels, 1), tf.argmax(pred, 1)), tf.float32))
 
-with tf.Session() as sess:
-  sess.run(tf.initialize_all_variables())
+sv = tf.Supervisor(logdir=args.log_dir, save_model_secs=args.save_model_secs)
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+config.graph_options.optimizer_options.global_jit_level = \
+  tf.OptimizerOptions.ON_1
+with sv.managed_session(config=config) as sess:
+  sess.run(tf.global_variables_initializer())
   for i in range(args.max_epoch):
     batch_frames, batch_labels = get_batch(frames, labels)
     sess.run(train_op, feed_dict={feed_frames: batch_frames,
@@ -75,5 +82,4 @@ with tf.Session() as sess:
       print(i, sess.run([loss, accuracy], feed_dict={feed_frames: batch_frames,
                                                      feed_labels: batch_labels}))
 
-test_frames, _ = load_data('test')
-print(test_frames.shape)
+
