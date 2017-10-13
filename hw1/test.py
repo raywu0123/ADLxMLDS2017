@@ -46,6 +46,7 @@ with tf.Graph().as_default():
   sv = tf.train.Supervisor(logdir=args.log_dir)
 
   test_frames, _ = load_data('test')
+  print(test_frames[:5, :5])
 
   with sv.managed_session() as sess:
     # global_step = sess.run(test_model.step)
@@ -54,9 +55,13 @@ with tf.Graph().as_default():
     n_frames = test_frames.shape[0]
     for frame_id in tqdm(range(n_frames)):
       batch_frames = np.zeros([args.batch_size, args.window_size, args.dim])
-      batch_frames[frame_id % args.window_size, :, :] = test_frames.take(
+      print(test_frames.take(
         range(frame_id - args.window_size//2, frame_id + args.window_size//2),
-        mode='wrap', axis=0)
+        mode='wrap', axis=0).copy())
+      batch_frames[frame_id % args.batch_size, :, :] = test_frames.take(
+        range(frame_id - args.window_size//2, frame_id + args.window_size//2),
+        mode='wrap', axis=0).copy()
+      input()
 
       if (frame_id + 1) % args.batch_size == 0 or frame_id == n_frames-1:
         feed_dict = {test_model.frames_holder: batch_frames}
@@ -65,4 +70,4 @@ with tf.Graph().as_default():
 
     with open('./prediction.npy','wb+') as file:
       np.save(file, frame_scores)
-      print('Prediction saved to {}') % format(file.name)
+      print('Prediction saved to {}') % (file.name)
