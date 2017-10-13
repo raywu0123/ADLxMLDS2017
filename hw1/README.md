@@ -16,17 +16,25 @@
             fbank/
                 test.ark
                 train.ark
-                        
 ```
-### Preprocess part only
+## Usage
+### Preprocessing
 Run the following command under `/hw1` directory.
-The program will generate `all_frames.npy` and `all_labels.npy`
-under `./data`
+The program will generate `trainframes.npy` and `labels.npy`
+or `testframes.npy` under `./data`
 ```
-./prepocess.sh [train] [test] 
+bash go.sh [pretrain] [pretest] 
 ```
-### Usage
+### Training
+Run the following command under `/hw1` directory.  
+The program will automatically save logs to `./logs`, and also handles crashes.
 ```
-$ ./
+bash go.sh train 
+```
+### Testing
+Run the following command under `/hw1` directory.  
+The program will restore from saved logs and generate prediction.
+```
+bash go.sh test
 ```
 
