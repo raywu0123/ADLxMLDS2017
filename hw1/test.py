@@ -58,10 +58,10 @@ with tf.Graph().as_default():
         range(frame_id - args.window_size//2, frame_id + args.window_size//2),
         mode='wrap', axis=0)
 
-      if (frame_id + 1) % args.batch_size or frame_id == n_frames-1:
+      if (frame_id + 1) % args.batch_size == 0 or frame_id == n_frames-1:
         feed_dict = {test_model.frames_holder: batch_frames}
         prediction = sess.run(test_model.pred, feed_dict=feed_dict)
-        frame_scores[frame_id-args.batch_size+1:frame_id+1] = prediction
+        frame_scores[frame_id-args.batch_size+1:frame_id+1] = prediction[args.window_size//2::args.window_size]
 
     with open('./prediction.npy','wb+') as file:
       np.save(file, frame_scores)
