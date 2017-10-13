@@ -18,9 +18,8 @@ dft_log_dir = 'logs'
 dft_n_class = 48
 dft_window_size = 128
 dft_dim = 69
-
-dft_valid_file = 'data/valid.tfr'
 dft_valid_ratio = 0.1
+
 dft_get_weights = True
 dft_weights_file = 'RNN_weights.pickle'
 dft_cnn_layer_num = 1
@@ -105,8 +104,6 @@ def parse_arguments():
                          '(default:%(default)s)')
   argparser.add_argument('-ub', '--use_bidirection', action='store_true',
                           help='use bidirectional rnn (default:False)')
-  argparser.add_argument('--valid_file', type=str,
-                          default=dft_valid_file, help='TFR file storing validation data (default: %(default)s)')
   argparser.add_argument('--valid_ratio', type=float,
                           default=dft_valid_ratio, help='Ratio of validation data (default: %(default)s)')
   argparser.add_argument('--get_weights', type=bool,

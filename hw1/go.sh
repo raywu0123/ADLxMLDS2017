@@ -63,6 +63,7 @@ do
       --window_size     $window_size \
       --n_class         $n_class \
       --dim             $dim \
+      --valid_ratio     $val_ratio \
       $use_bidirection
   elif [ "$var" == "test" ]
     then
