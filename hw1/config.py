@@ -30,8 +30,6 @@ dft_kernel_size = 2
 dft_pool_size = 2
 dft_test_num = 500 # number of test data
 
-
-
 def parse_arguments():
 
   argparser = argparse.ArgumentParser(description='Sequential Matching Network')

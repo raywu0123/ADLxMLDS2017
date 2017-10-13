@@ -53,7 +53,7 @@ def run_epoch(sess, model, args, frames, labels, opt):
   if opt:
     fetches['eval'] = model.eval
   vals = sess.run(fetches, feed_dict=feed_dict)
-  return vals['loss'],vals['acc']
+  return vals['loss'], vals['acc']
 
 if __name__ == '__main__':
   args = config.parse_arguments()
@@ -88,5 +88,5 @@ if __name__ == '__main__':
         train_loss, train_acc = run_epoch(sess, train_model, train_args, train_frames, train_labels, opt=True)
         if i % args.info_epoch == 0:
           valid_loss, valid_acc = run_epoch(sess, train_model, train_args, valid_frames, valid_labels, opt=False)
-          print('Epoch: %d, TrainLoss: %.5f, TrainAcc= %.5f, ValidLoss: %.5f, ValidAcc= %.5f' \
+          print('Epoch: %d, TrainLoss: %.5f, TrainAcc= %.5f, ValidLoss: %.5f, ValidAcc= %.5f'\
                   % (i, train_loss, train_acc, valid_loss, valid_acc))

@@ -23,7 +23,8 @@ dim=69
 use_bidirection=''
 
 val_ratio=0.1
-ark_path='./data/fbank/train.ark'
+train_ark_path='./data/fbank/train.ark'
+test_ark_path='./data/fbank/test.ark'
 lab_path='./data/train.lab'
 preprocess_output_path='./data/'
 
@@ -33,14 +34,14 @@ do
   then
     python3 preprocess.py \
       --mode            'train' \
-      --ark             $ark_path   \
+      --ark             $train_ark_path   \
       --lab             $lab_path   \
       --output_dir      $preprocess_output_path
   elif [ "$var" == "pretest" ]
   then
     python3 preprocess.py \
       --mode            'test' \
-      --ark             $ark_path   \
+      --ark             $test_ark_path   \
       --output_dir      $preprocess_output_path
   elif [ "$var" == "train" ]
   then

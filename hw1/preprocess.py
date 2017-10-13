@@ -91,7 +91,7 @@ def write_npy(ark_path, output_path, label_path=None):
     write_file('labels.npy', np.array(all_labels, dtype=int))
     write_file('trainframes.npy', np.array(all_frames, dtype=float))
   elif args.mode =='test':
-    write_file('testframes.npy', np.array(all_frames, dtype=int))
+    write_file('testframes.npy', np.array(all_frames, dtype=float))
 
 
 if args.mode == 'train':
