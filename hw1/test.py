@@ -55,7 +55,7 @@ with tf.Graph().as_default():
     for frame_id in tqdm(range(n_frames)):
       batch_frames = np.zeros([args.batch_size, args.window_size, args.dim])
       batch_frames[frame_id % args.window_size, :, :] = test_frames.take(
-        range(frame_id - args.window_size/2, frame_id + args.window_size/2),
+        range(frame_id - args.window_size//2, frame_id + args.window_size//2),
         mode='wrap', axis=0)
 
       if (frame_id + 1) % args.batch_size or frame_id == n_frames-1:
