@@ -52,8 +52,8 @@ with tf.Graph().as_default():
     # print('global step = {}'.format(global_step))
     frame_scores = np.zeros([test_frames.shape[0], args.n_class], dtype=float)
     n_frames = test_frames.shape[0]
+    batch_frames = np.zeros([args.batch_size, args.window_size, args.dim])
     for frame_id in tqdm(range(n_frames)):
-      batch_frames = np.zeros([args.batch_size, args.window_size, args.dim])
       batch_frames[frame_id % args.batch_size, :, :] = test_frames.take(
         range(frame_id - args.window_size//2, frame_id + args.window_size//2),
         mode='wrap', axis=0).copy()
