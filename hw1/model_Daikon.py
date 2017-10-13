@@ -41,11 +41,14 @@ class RNN_model():
 
     outputs, _ = self.rnn_output(feed_frames, f1_cells, b1_cells, 'rnn_model')
 
-    flatten_outputs = tf.reshape(outputs, [-1, self.hidden_size])
-    dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
-    dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
-    dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)
-    pred = tf.layers.dense(dense3, self.n_class)
+    flatten_outputs = tf.reshape(outputs, [-1, self.window_size*self.hidden_size])
+    dense1 = tf.layers.dense(flatten_outputs, 8192, activation=tf.nn.relu)
+    dense2 = tf.layers.dense(dense1, 8192, activation=tf.nn.relu)
+    reshape1 = tf.reshape(dense2, [-1, self.hidden_size])
+    dense3 = tf.layers.dense(reshape1, 512, activation=tf.nn.relu)
+    dense4 = tf.layers.dense(dense3, 512, activation=tf.nn.relu)
+    pred = tf.layers.dense(dense4, self.n_class)
+
     return pred
 
   def initialize(self):
