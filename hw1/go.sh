@@ -68,9 +68,8 @@ do
       --n_class         $n_class \
       --dim             $dim \
       --valid_ratio     $val_ratio \
-      --kernal_size     $kernel_size \
+      --kernel_size     $kernel_size \
       --filter_num      $filter_num  \
-
       $use_bidirection
   elif [ "$var" == "test" ]
     then
@@ -93,6 +92,8 @@ do
       --window_size     $window_size \
       --n_class         $n_class \
       --dim             $dim \
+      --kernel_size     $kernel_size \
+      --filter_num      $filter_num  \
       $use_bidirection
   fi
 done
