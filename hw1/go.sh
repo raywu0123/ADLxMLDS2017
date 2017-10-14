@@ -20,7 +20,10 @@ train_file=data/trainframes.npy
 n_class=48
 window_size=128
 dim=69
-use_bidirection='-ub'
+use_bidirection=''
+
+kernel_size=3
+filter_num=128
 
 val_ratio=0.1
 train_ark_path='./data/fbank/train.ark'
@@ -65,6 +68,9 @@ do
       --n_class         $n_class \
       --dim             $dim \
       --valid_ratio     $val_ratio \
+      --kernal_size     $kernel_size \
+      --filter_num      $filter_num  \
+
       $use_bidirection
   elif [ "$var" == "test" ]
     then

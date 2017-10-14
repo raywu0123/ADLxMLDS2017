@@ -134,21 +134,21 @@ class RNN_model():
 
 class CNN_model(RNN_model):
   def get_pred(self, rnn_cells, feed_frames):
+    reshape1 = tf.expand_dims(feed_frames, -1)
+    conv1 = tf.layers.conv2d(reshape1, self.filter_num,
+                               [self.kernel_size, self.dim],
+                               activation=tf.nn.relu, padding='SAME')
+
+    reshape2 = tf.reshape(conv1, [self.batch_size, self.window_size,-1])
+
     f1_cells = rnn_cells(self.hidden_size)
     if self.use_bidirection:
       b1_cells = rnn_cells(self.hidden_size)
     else:
       b1_cells = None
+    output, _ = self.rnn_output(reshape2, f1_cells, b1_cells, 'rnn_model')
 
-
-    output1, _ = self.rnn_output(feed_frames, f1_cells, b1_cells, 'rnn_model')
-    reshape1 = tf.expand_dims(output1, -1)
-    conv1 = tf.layers.conv2d(reshape1, self.filter_num,
-                               [self.kernel_size, self.hidden_size],
-                               activation=tf.nn.relu, padding='SAME')
-
-
-    flatten_outputs = tf.reshape(conv1, [self.batch_size*self.window_size, -1])
+    flatten_outputs = tf.reshape(output, [self.batch_size*self.window_size, -1])
     dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
     dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
     dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)
