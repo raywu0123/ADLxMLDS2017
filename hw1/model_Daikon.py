@@ -139,7 +139,7 @@ class CNN_model(RNN_model):
                                [self.kernel_size, self.dim],
                                activation=tf.nn.relu, padding='SAME')
 
-    reshape2 = tf.reshape(conv1, [self.batch_size, self.window_size,-1])
+    reshape2 = tf.reshape(conv1, [self.batch_size, self.window_size, self.dim*self.filter_num])
 
     f1_cells = rnn_cells(self.hidden_size)
     if self.use_bidirection:
