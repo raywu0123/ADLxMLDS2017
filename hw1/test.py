@@ -7,7 +7,8 @@ import numpy as np
 import copy
 from model_Daikon import RNN_model
 import config
-import math
+from itertools import groupby
+
 from tqdm import tqdm
 
 def load_data(mode):
@@ -27,6 +28,56 @@ def load_data(mode):
 
   print('Data loaded.')
   return frames, labels
+
+def write_result(frame_scores, path):
+  def get_intchar_map(path):
+    phone2int = {}
+    phone2char = {}
+    with open(path) as file:
+      for line in file:
+        sep = line[:-1].split('\t')
+        phone2int[sep[0]] = int(sep[1])
+        phone2char[sep[0]] = str(sep[2])
+    return phone2int, phone2char
+
+  def get_phone_map(path):
+    phone_map = {}
+    with open(path) as file:
+      for line in file:
+        sep = line[:-1].split('\t')
+        phone_map[sep[0]] = str(sep[1])
+    return phone_map
+  phone2int, phone2char = get_intchar_map('./data/48phone_char.map')
+  int2phone = {v: k for k, v in phone2int.items()}
+  phone_map = get_phone_map('./data/48_39.map')
+
+  split_videos=[]
+  ids = []
+  with open('./data/mfcc/test.ark') as file:
+    pre_id = ''
+    video = []
+    for line_id, line in enumerate(file):
+      line = line.strip('\n').split(' ')
+      id = '_'.join(line[0].split('_')[:2])
+      if pre_id != id and len(video) != 0:
+        split_videos.append(video)
+        ids.append(pre_id)
+        video = []
+      pre_id = id
+      video.append(frame_scores[line_id].argmax())
+    split_videos.append(video)
+    ids.append(pre_id)
+
+  with open(path, 'w+') as file:
+    file.write('id,phone_sequence\n')
+    for video_id, sequence_48 in enumerate(split_videos):
+      sequence_39 = [phone_map[int2phone[integer]] for integer in sequence_48]
+      comb_sequence = [k for k, g in groupby(sequence_39)]
+      char_sequence = [phone2char[phone] for phone in comb_sequence]
+      string = ''.join(char_sequence).strip('L')
+      line = ids[video_id]+","+string
+      print(line)
+      file.write(line+'\n')
 
 args = config.parse_arguments()
 args.fac = int(args.use_bidirection) + 1
@@ -64,6 +115,4 @@ with tf.Graph().as_default():
         prediction = sess.run(test_model.pred, feed_dict=feed_dict)
         frame_scores[frame_id-args.batch_size+1:frame_id+1] = prediction[args.window_size//2::args.window_size]
 
-    with open('./prediction.npy','wb+') as file:
-      np.save(file, frame_scores)
-      print('Prediction saved to {}') % (file.name)
+    write_result(frame_scores, args.pred_file)

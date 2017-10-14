@@ -3,13 +3,13 @@
 echo "Usage : ./go.sh [pretrain] [pretest] [train] [test]"
 
 batch_size=512
-hidden_size=64
+hidden_size=256
 info_epoch=10
 init_scale=0.1
 keep_prob=1
 learning_rate=0.001
 decay_steps=20
-decay_rate=1
+decay_rate=0.99
 log_dir=logs
 max_epoch=200000
 max_grad_norm=1
