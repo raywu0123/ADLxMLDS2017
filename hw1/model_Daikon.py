@@ -35,7 +35,7 @@ class RNN_model():
   def get_pred(self, rnn_cells, feed_frames):
     f1_cells = rnn_cells(self.hidden_size)
     if self.use_bidirection:
-      b1_cells = rnn_cells(self.hidden_size)
+      b1_cells = rnn_cells(self.hidden_size//2)
     else:
       b1_cells = None
 
@@ -131,3 +131,7 @@ class RNN_model():
 
   @property
   def pred(self): return self._pred
+
+class CNN_model(RNN_model):
+  def get_pred(self, rnn_cells, feed_frames):
+    pass

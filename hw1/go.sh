@@ -20,7 +20,7 @@ train_file=data/trainframes.npy
 n_class=48
 window_size=128
 dim=69
-use_bidirection=''
+use_bidirection='-ub'
 
 val_ratio=0.1
 train_ark_path='./data/fbank/train.ark'
