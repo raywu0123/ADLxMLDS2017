@@ -39,9 +39,9 @@ class RNN_model():
     else:
       b1_cells = None
 
-    outputs, _ = self.rnn_output(feed_frames, f1_cells, b1_cells, 'rnn_model')
+    outputs, final_state = self.rnn_output(feed_frames, f1_cells, b1_cells, 'rnn_model')
 
-    flatten_outputs = tf.reshape(outputs, [-1, self.hidden_size*(1+int(self.use_bidirection))])
+    flatten_outputs = tf.reshape(final_state, [-1, self.hidden_size*(1+int(self.use_bidirection))])
     dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
     dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
     dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)

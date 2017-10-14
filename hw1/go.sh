@@ -4,7 +4,7 @@ echo "Usage : ./go.sh [pretrain] [pretest] [train] [test]"
 
 batch_size=512
 hidden_size=256
-info_epoch=10
+info_epoch=100
 init_scale=0.1
 keep_prob=1
 learning_rate=0.001
@@ -18,7 +18,7 @@ rnn_type=1 # 0: LSTM, 1: GRU
 save_model_secs=120
 train_file=data/trainframes.npy
 n_class=48
-window_size=128
+window_size=32
 dim=69
 use_bidirection=''
 

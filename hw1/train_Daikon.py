@@ -33,11 +33,11 @@ def run_epoch(sess, model, args, frames, labels, opt):
     def get_single_ex(frames, labels):
       start_id = random.randint(0, len(frames) - args.window_size - 1)
       ex_frames = frames[start_id:start_id + args.window_size]
-      ex_labels = labels[start_id:start_id + args.window_size]
+      ex_labels = labels[start_id + args.window_size]
       return ex_frames, ex_labels
 
     batch_frames = np.zeros([args.batch_size, args.window_size, args.dim], dtype=float)
-    batch_labels = np.zeros([args.batch_size, args.window_size, args.n_class], dtype=float)
+    batch_labels = np.zeros([args.batch_size, args.n_class], dtype=float)
     for idx in range(args.batch_size):
       ex_frames, ex_labels = get_single_ex(frames, labels)
       batch_frames[idx] = ex_frames.copy()
@@ -65,7 +65,7 @@ if __name__ == '__main__':
       train_args = copy.deepcopy(args)
       train_args.mode = 'train'
       with tf.variable_scope('model', reuse=None, initializer=initializer) as scope:
-        train_model = CNN_model(args=train_args)
+        train_model = RNN_model(args=train_args)
         scope.reuse_variables()
 
     config = tf.ConfigProto()
