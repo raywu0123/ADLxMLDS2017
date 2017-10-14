@@ -138,7 +138,6 @@ class CNN_model(RNN_model):
     conv1 = tf.layers.conv2d(reshape1, self.filter_num,
                                [self.kernel_size, self.dim],
                                activation=tf.nn.relu, padding='SAME')
-
     reshape2 = tf.reshape(conv1, [self.batch_size, self.window_size, self.dim*self.filter_num])
 
     f1_cells = rnn_cells(self.hidden_size)
@@ -149,8 +148,5 @@ class CNN_model(RNN_model):
     output, _ = self.rnn_output(reshape2, f1_cells, b1_cells, 'rnn_model')
 
     flatten_outputs = tf.reshape(output, [self.batch_size*self.window_size, -1])
-    dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
-    dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
-    dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)
-    pred = tf.layers.dense(dense3, self.n_class)
-    return pred
+
+    return flatten_outputs
