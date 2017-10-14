@@ -149,4 +149,4 @@ class CNN_model(RNN_model):
 
     flatten_outputs = tf.reshape(output, [self.batch_size*self.window_size, -1])
     dense = tf.layers.dense(flatten_outputs, self.n_class)
-    return flatten_outputs
+    return dense
