@@ -88,7 +88,7 @@ with tf.Graph().as_default():
     test_args = copy.deepcopy(args)
     test_args.mode = 'test'
   with tf.variable_scope('model', reuse=None):
-    test_model = RNN_model(args=test_args)
+    test_model = CNN_model(args=test_args)
 
   config = tf.ConfigProto()
   config.gpu_options.allow_growth = True
