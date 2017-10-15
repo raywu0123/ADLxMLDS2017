@@ -8,7 +8,7 @@ import copy
 from model_Daikon import RNN_model
 import config
 from itertools import groupby
-
+import math
 from tqdm import tqdm
 
 def load_data(mode):
@@ -103,15 +103,32 @@ with tf.Graph().as_default():
     # print('global step = {}'.format(global_step))
     frame_scores = np.zeros([test_frames.shape[0], args.n_class], dtype=float)
     n_frames = test_frames.shape[0]
-    batch_frames = np.zeros([args.batch_size, args.window_size, args.dim])
-    for frame_id in tqdm(range(n_frames)):
-      batch_frames[frame_id % args.batch_size, :, :] = test_frames.take(
-        range(frame_id - args.window_size//2, frame_id + args.window_size//2),
-        mode='wrap', axis=0).copy()
+    n_batch = math.ceil(n_frames/args.batch_size)
+    for batch_id in tqdm(range(n_batch)):
+      def get_batch(frames, start_id):
+        batch_frames = np.zeros([args.batch_size, args.window_size, args.dim])
+        for idx in range(args.batch_size):
+          batch_frames[idx, :, :] = frames.take(
+          range(start_id+idx, start_id+idx + args.window_size),
+          mode='wrap', axis=0).copy()
+        return batch_frames
+      start_id = batch_id*args.batch_size
+      batch_frames = get_batch(test_frames, start_id)
+      feed_dict = {test_model.frames_holder: batch_frames}
+      prediction = sess.run(test_model.pred, feed_dict=feed_dict)
+      for pred_batch_idx in range(args.batch_size):
+        batch_start_id = pred_batch_idx*args.window_size
+        batch_end_id = pred_batch_idx*args.window_size + args.window_size
+        batch_pred = prediction[batch_start_id:batch_end_id]
 
-      if (frame_id + 1) % args.batch_size == 0 or frame_id == n_frames-1:
-        feed_dict = {test_model.frames_holder: batch_frames}
-        prediction = sess.run(test_model.pred, feed_dict=feed_dict)
-        frame_scores[frame_id-args.batch_size+1:frame_id+1] = prediction[args.window_size//2::args.window_size]
+        frame_start_id = start_id+pred_batch_idx
+        frame_end_id = frame_start_id + args.window_size
+        if frame_end_id <= n_frames:
+          frame_scores[frame_start_id:frame_end_id]\
+            += batch_pred
+        else:
+          frame_scores[frame_start_id:] += batch_pred[:n_frames-frame_end_id]
+          frame_scores[:frame_end_id-n_frames] += batch_pred[n_frames-frame_end_id:]
+
 
     write_result(frame_scores, args.pred_file)
