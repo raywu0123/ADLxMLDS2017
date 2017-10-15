@@ -136,9 +136,11 @@ class CNN_model(RNN_model):
   def get_pred(self, rnn_cells, feed_frames):
     reshape1 = tf.expand_dims(feed_frames, -1)
     conv1 = tf.layers.conv2d(reshape1, self.filter_num,
-                               [self.kernel_size, self.dim],
+                               [self.kernel_size, self.kernel_size],
                                activation=tf.nn.relu, padding='SAME')
-    reshape2 = tf.reshape(conv1, [self.batch_size, self.window_size, self.dim*self.filter_num])
+
+    pool1 = tf.layers.max_pooling2d(conv1, [1, 2], [1, 1, 2 ,1])
+    reshape2 = tf.reshape(pool1, [self.batch_size, self.window_size, (self.dim//2)*self.filter_num])
 
     f1_cells = rnn_cells(self.hidden_size)
     if self.use_bidirection:
