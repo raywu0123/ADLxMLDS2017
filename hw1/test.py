@@ -118,17 +118,17 @@ with tf.Graph().as_default():
       prediction = sess.run(test_model.pred, feed_dict=feed_dict)
       for pred_batch_idx in range(args.batch_size):
         batch_start_id = pred_batch_idx*args.window_size
-        batch_end_id = pred_batch_idx*args.window_size + args.window_size
+        batch_end_id = batch_start_id + args.window_size
         batch_pred = prediction[batch_start_id:batch_end_id]
 
         frame_start_id = start_id+pred_batch_idx
         frame_end_id = frame_start_id + args.window_size
-        if frame_end_id < n_frames:
+        if frame_end_id <= n_frames:
           frame_scores[frame_start_id:frame_end_id]\
             += batch_pred
-        elif frame_end_id >= n_frames and frame_start_id < n_frames:
-          frame_scores[frame_start_id:] += batch_pred[:n_frames-frame_end_id-1]
-          frame_scores[:frame_end_id-n_frames+1] += batch_pred[n_frames-1-frame_end_id:]
+        elif frame_end_id > n_frames and frame_start_id < n_frames:
+          frame_scores[frame_start_id:] += batch_pred[:n_frames-frame_start_id]
+          frame_scores[:frame_end_id-n_frames] += batch_pred[n_frames-frame_start_id:]
 
 
     write_result(frame_scores, args.pred_file)
