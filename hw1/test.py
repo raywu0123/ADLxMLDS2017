@@ -123,12 +123,12 @@ with tf.Graph().as_default():
 
         frame_start_id = start_id+pred_batch_idx
         frame_end_id = frame_start_id + args.window_size
-        if frame_end_id <= n_frames:
+        if frame_end_id < n_frames:
           frame_scores[frame_start_id:frame_end_id]\
             += batch_pred
         else:
-          frame_scores[frame_start_id:] += batch_pred[:n_frames-frame_end_id]
-          frame_scores[:frame_end_id-n_frames] += batch_pred[n_frames-frame_end_id:]
+          frame_scores[frame_start_id:] += batch_pred[:n_frames-1-frame_end_id]
+          frame_scores[:frame_end_id-n_frames+1] += batch_pred[n_frames-frame_end_id:]
 
 
     write_result(frame_scores, args.pred_file)
