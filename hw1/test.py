@@ -126,8 +126,8 @@ with tf.Graph().as_default():
         if frame_end_id < n_frames:
           frame_scores[frame_start_id:frame_end_id]\
             += batch_pred
-        else:
-          frame_scores[frame_start_id:] += batch_pred[:n_frames-1-frame_end_id]
+        elif frame_end_id >= n_frames and frame_start_id < n_frames:
+          frame_scores[frame_start_id:] += batch_pred[:n_frames-frame_end_id-1]
           frame_scores[:frame_end_id-n_frames+1] += batch_pred[n_frames-1-frame_end_id:]
 
 
