@@ -5,7 +5,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import numpy as np
 import copy
-from model_Daikon import RNN_model
+from model_Daikon import RNN_model, CNN_model
 import config
 from itertools import groupby
 import math
