@@ -64,6 +64,7 @@ if __name__ == '__main__':
     with tf.name_scope('train'):
       train_args = copy.deepcopy(args)
       train_args.mode = 'train'
+
       with tf.variable_scope('model', reuse=None, initializer=initializer) as scope:
         train_model = CNN_model(args=train_args)
         scope.reuse_variables()

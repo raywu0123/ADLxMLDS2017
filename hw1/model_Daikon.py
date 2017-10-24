@@ -33,20 +33,25 @@ class RNN_model():
         pass
 
   def get_pred(self, rnn_cells, feed_frames):
-    f1_cells = rnn_cells(self.hidden_size)
-    if self.use_bidirection:
-      b1_cells = rnn_cells(self.hidden_size)
-    else:
-      b1_cells = None
 
-    outputs, final_state = self.rnn_output(feed_frames, f1_cells, b1_cells, 'rnn_model')
+    with tf.variable_scope('RNN_1'):
+      f1_rnn_cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_size)
+      if self.use_bidirection:
+        b1_rnn_cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_size)
+      else:
+        b1_rnn_cell = None
+      outputs1, _ = self.rnn_output(feed_frames, f1_rnn_cell, b1_rnn_cell, 'rnn_model')
 
-    flatten_outputs = tf.reshape(outputs, [-1, self.hidden_size*(1+int(self.use_bidirection))])
-    dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
-    dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
-    dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)
-    pred = tf.layers.dense(dense3, self.n_class)
+    with tf.variable_scope('RNN_2'):
+      f2_rnn_cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_size//2)
+      if self.use_bidirection:
+        b2_rnn_cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_size//2)
+      else:
+        b2_rnn_cell = None
+      outputs2, _ = self.rnn_output(outputs1, f2_rnn_cell, b2_rnn_cell, 'rnn_model')
 
+    flatten_outputs = tf.reshape(outputs2, [-1, self.hidden_size//2*(1+int(self.use_bidirection))])
+    pred = tf.layers.dense(flatten_outputs, self.n_class)
     return pred
 
   def initialize(self):
@@ -109,7 +114,6 @@ class RNN_model():
     opt = tf.train.AdamOptimizer(self.learning_rate)
     return opt.apply_gradients(zip(grads, tvars), global_step=self._step)
 
-
   @property
   def loss(self): return self._loss
 
@@ -134,22 +138,33 @@ class RNN_model():
 
 class CNN_model(RNN_model):
   def get_pred(self, rnn_cells, feed_frames):
-    f1_cells = rnn_cells(self.hidden_size)
-    if self.use_bidirection:
-      b1_cells = rnn_cells(self.hidden_size)
-    else:
-      b1_cells = None
-    output, _ = self.rnn_output(feed_frames, f1_cells, b1_cells, 'rnn_model')
 
-    reshape1 = tf.expand_dims(output, -1)
+    reshape1 = tf.expand_dims(feed_frames, -1)
     conv1 = tf.layers.conv2d(reshape1, self.filter_num,
-                               [self.kernel_size, 1],
+                               [5, 3],
                                activation=tf.nn.relu, padding='SAME')
+    pool1 = tf.layers.max_pooling2d(conv1, 2, [2, 2], padding='valid')
 
-    flatten_outputs = tf.reshape(conv1, [self.batch_size*self.window_size, -1])
-    dense1 = tf.layers.dense(flatten_outputs, 512, activation=tf.nn.relu)
-    dense2 = tf.layers.dense(dense1, 512, activation=tf.nn.relu)
-    dense3 = tf.layers.dense(dense2, 512, activation=tf.nn.relu)
-    pred = tf.layers.dense(dense3, self.n_class)
+    reshape2 = tf.reshape(pool1, [self.batch_size, self.window_size,
+                                  (self.dim//2)*(self.filter_num)//2])
 
+
+    with tf.variable_scope('RNN_1'):
+      f1_cells = rnn_cells(self.hidden_size)
+      if self.use_bidirection:
+        b1_cells = rnn_cells(self.hidden_size)
+      else:
+        b1_cells = None
+      outputs1, _ = self.rnn_output(reshape2, f1_cells, b1_cells, 'cnn_model')
+
+    with tf.variable_scope('RNN_2'):
+      f1_cells = rnn_cells(self.hidden_size//2)
+      if self.use_bidirection:
+        b1_cells = rnn_cells(self.hidden_size//2)
+      else:
+        b1_cells = None
+      outputs2, _ = self.rnn_output(outputs1, f1_cells, b1_cells, 'cnn_model')
+
+    flatten_outputs = tf.reshape(outputs2, [-1, self.hidden_size//2*(1+int(self.use_bidirection))])
+    pred = tf.layers.dense(flatten_outputs, self.n_class)
     return pred

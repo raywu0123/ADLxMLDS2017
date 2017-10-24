@@ -29,6 +29,7 @@ dft_filter_num = 12
 dft_kernel_size = 2
 dft_pool_size = 2
 dft_test_num = 500 # number of test data
+dft_vote_num = 10 #number of frames to strip off from window
 
 def parse_arguments():
 
@@ -111,5 +112,5 @@ def parse_arguments():
   argparser.add_argument('--n_class', type=int, default=dft_n_class)
   argparser.add_argument('--window_size', type=int, default=dft_window_size)
   argparser.add_argument('--dim', type=int, default=dft_dim)
-
+  argparser.add_argument('--vote_num', type=int,default=dft_vote_num)
   return argparser.parse_args()

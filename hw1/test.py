@@ -72,11 +72,31 @@ def write_result(frame_scores, path):
     file.write('id,phone_sequence\n')
     for video_id, sequence_48 in enumerate(split_videos):
       sequence_39 = [phone_map[int2phone[integer]] for integer in sequence_48]
-      comb_sequence = [k for k, g in groupby(sequence_39)]
-      char_sequence = [phone2char[phone] for phone in comb_sequence]
+      def comb(a, thres=3):
+        assert (len(a) > 0)
+
+        pre_char = a[0]
+        cnt = 0
+        filtered_a = []
+        for entry in a:
+          cur_char = entry
+          if pre_char == cur_char:
+            cnt += 1
+          else:
+            if cnt >= thres:
+              filtered_a.append(pre_char)
+            pre_char = cur_char
+            cnt = 1
+        if cnt >= thres:
+          filtered_a.append(a[-1])
+        return filtered_a
+      comb_phone_sequence = comb(comb(sequence_39), 1)
+      char_sequence = [phone2char[phone] for phone in comb_phone_sequence]
+
       string = ''.join(char_sequence).strip('L')
       line = ids[video_id]+","+string
       print(line)
+      # input()
       file.write(line+'\n')
 
 args = config.parse_arguments()
@@ -99,8 +119,8 @@ with tf.Graph().as_default():
   test_frames, _ = load_data('test')
 
   with sv.managed_session() as sess:
-    # global_step = sess.run(test_model.step)
-    # print('global step = {}'.format(global_step))
+    global_step = sess.run(test_model.step)
+    print('global step = {}'.format(global_step))
     frame_scores = np.zeros([test_frames.shape[0], args.n_class], dtype=float)
     n_frames = test_frames.shape[0]
     n_batch = math.ceil(n_frames/args.batch_size)
@@ -121,6 +141,26 @@ with tf.Graph().as_default():
         batch_end_id = batch_start_id + args.window_size
         batch_pred = prediction[batch_start_id:batch_end_id]
 
+        def filter_batch_pred(batch_pred, mode):
+          filter_pred = np.zeros([args.window_size, args.n_class], dtype=float)
+          if mode == 'filter':
+            for idx, frame_pred in enumerate(batch_pred):
+              def softmax(x):
+                """Compute softmax values for each sets of scores in x."""
+                e_x = np.exp(x - np.max(x))
+                return e_x / e_x.sum(axis=0)
+              softmax_frame_pred = softmax(frame_pred)
+              n_over_threshold = np.sum(softmax_frame_pred > 0.5)
+              # print(n_over_threshold)
+              if n_over_threshold > 0 and n_over_threshold < 3:
+                filter_pred[idx] = frame_pred.copy()
+            return filter_pred
+          elif mode == 'strip':
+            filter_pred[args.vote_num: -args.vote_num] = batch_pred[args.vote_num: -args.vote_num]
+            return filter_pred
+        batch_pred = filter_batch_pred(batch_pred, 'strip')
+
+        # input()
         frame_start_id = start_id+pred_batch_idx
         frame_end_id = frame_start_id + args.window_size
         if frame_end_id <= n_frames:

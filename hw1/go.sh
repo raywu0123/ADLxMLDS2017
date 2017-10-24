@@ -2,14 +2,14 @@
 
 echo "Usage : ./go.sh [pretrain] [pretest] [train] [test]"
 
-batch_size=512
-hidden_size=128
+batch_size=128
+hidden_size=256
 info_epoch=100
 init_scale=0.1
 keep_prob=1
 learning_rate=0.001
 decay_steps=20
-decay_rate=1
+decay_rate=0.99
 log_dir=CNN_logs
 max_epoch=200000
 max_grad_norm=1
@@ -18,14 +18,15 @@ rnn_type=1 # 0: LSTM, 1: GRU
 save_model_secs=120
 train_file=data/trainframes.npy
 n_class=48
-window_size=32
+window_size=64
 dim=69
-use_bidirection='-ub'
+use_bidirection=''
 
-kernel_size=3
-filter_num=32
+kernel_size=5
+filter_num=128
 
 val_ratio=0.1
+vote_num=10
 train_ark_path='./data/fbank/train.ark'
 test_ark_path='./data/fbank/test.ark'
 lab_path='./data/train.lab'
@@ -94,6 +95,7 @@ do
       --dim             $dim \
       --kernel_size     $kernel_size \
       --filter_num      $filter_num  \
+      --vote_num        $vote_num   \
       $use_bidirection
   fi
 done
