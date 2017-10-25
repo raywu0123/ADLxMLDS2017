@@ -1,8 +1,4 @@
 import tensorflow as tf
-from tensorflow.contrib import keras
-import random
-import numpy as np
-
 
 class RNN_model():
   def __init__(self, args):

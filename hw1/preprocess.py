@@ -5,13 +5,9 @@ from os.path import join
 
 parser = argparse.ArgumentParser(description='parse ark (and lab) file to tfr.')
 parser.add_argument('--mode', type=str, default='train')
-parser.add_argument('--ark', type=str, default='./data/fbank/train.ark')
-parser.add_argument('--lab', type=str, default='')
+parser.add_argument('--data_dir', type=str, default='./data')
 parser.add_argument('--output_dir', type=str, default='./data')
 args = parser.parse_args()
-
-assert (not (args.mode == 'test' and args.lab != ''))
-
 
 def get_intchar_map(path):
   phone2int = {}
@@ -23,7 +19,7 @@ def get_intchar_map(path):
       phone2char[sep[0]] = str(sep[2])
   return phone2int, phone2char
 
-phone2int, phone2char = get_intchar_map('./data/48phone_char.map')
+phone2int, phone2char = get_intchar_map(join(args.data_dir,'48phone_char.map'))
 
 def get_label(path):
   ark = {}
@@ -95,8 +91,11 @@ def write_npy(ark_path, output_path, label_path=None):
 
 
 if args.mode == 'train':
-  write_npy(args.ark, args.output_dir, args.lab)
+  ark_path = join(args.data_dir, 'fbank/train.ark')
+  lab_path = join(args.data_dir, 'label/train.lab')
+  write_npy(ark_path, args.data_dir, lab_path)
 elif args.mode == 'test':
-  write_npy(args.ark, args.output_dir)
+  ark_path = join(args.data_dir, 'fbank/test.ark')
+  write_npy(ark_path, args.data_dir)
 else:
   print('Illegal mode!')

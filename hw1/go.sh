@@ -10,7 +10,7 @@ keep_prob=1
 learning_rate=0.001
 decay_steps=20
 decay_rate=0.99
-log_dir=CNN_logs
+log_dir=CNN_logs2
 max_epoch=200000
 max_grad_norm=1
 rnn_layer_num=1
@@ -24,13 +24,10 @@ use_bidirection=''
 
 kernel_size=5
 filter_num=128
-
 val_ratio=0.1
 vote_num=10
-train_ark_path='./data/fbank/train.ark'
-test_ark_path='./data/fbank/test.ark'
-lab_path='./data/train.lab'
-preprocess_output_path='./data/'
+
+data_dir='./data'
 
 for var in "$@"
 do
@@ -38,15 +35,14 @@ do
   then
     python3 preprocess.py \
       --mode            'train' \
-      --ark             $train_ark_path   \
-      --lab             $lab_path   \
-      --output_dir      $preprocess_output_path
+      --data_dir        $data_dir   \
+      --output_dir      $data_dir
   elif [ "$var" == "pretest" ]
   then
     python3 preprocess.py \
       --mode            'test' \
-      --ark             $test_ark_path   \
-      --output_dir      $preprocess_output_path
+      --data_dir        $data_dir   \
+      --output_dir      $data_dir
   elif [ "$var" == "train" ]
   then
     python3 train_Daikon.py \
@@ -64,7 +60,6 @@ do
       --rnn_layer_num   $rnn_layer_num  \
       --rnn_type        $rnn_type  \
       --save_model_secs  $save_model_secs    \
-      --train_file      $train_file   \
       --window_size     $window_size \
       --n_class         $n_class \
       --dim             $dim \
@@ -89,7 +84,6 @@ do
       --rnn_layer_num   $rnn_layer_num  \
       --rnn_type        $rnn_type  \
       --save_model_secs  $save_model_secs    \
-      --train_file      $train_file   \
       --window_size     $window_size \
       --n_class         $n_class \
       --dim             $dim \

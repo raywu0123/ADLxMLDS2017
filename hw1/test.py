@@ -7,19 +7,24 @@ import numpy as np
 import copy
 from model_Daikon import RNN_model, CNN_model
 import config
-from itertools import groupby
+from os.path import join
 import math
 from tqdm import tqdm
+
+args = config.parse_arguments()
+args.fac = int(args.use_bidirection) + 1
+
+
 
 def load_data(mode):
   path = ''
   if mode == 'train':
-    path = './data/trainframes.npy'
-    file = open('./data/labels.npy', 'rb')
+    path = join(args.data_dir, 'trainframes.npy')
+    file = open(join(args.data_dir, 'labels.npy'), 'rb')
     labels = np.load(file)
     file.close()
   elif mode == 'test':
-    path = './data/testframes.npy'
+    path = join(args.data_dir, 'testframes.npy')
     labels = None
 
   file = open(path, 'rb')
@@ -47,13 +52,13 @@ def write_result(frame_scores, path):
         sep = line[:-1].split('\t')
         phone_map[sep[0]] = str(sep[1])
     return phone_map
-  phone2int, phone2char = get_intchar_map('./data/48phone_char.map')
+  phone2int, phone2char = get_intchar_map(join(args.data_dir, '48phone_char.map'))
   int2phone = {v: k for k, v in phone2int.items()}
-  phone_map = get_phone_map('./data/48_39.map')
+  phone_map = get_phone_map(join(args.data_dir, 'phones/48_39.map'))
 
   split_videos=[]
   ids = []
-  with open('./data/mfcc/test.ark') as file:
+  with open(join(args.data_dir, 'mfcc/test.ark')) as file:
     pre_id = ''
     video = []
     for line_id, line in enumerate(file):
@@ -99,16 +104,15 @@ def write_result(frame_scores, path):
       # input()
       file.write(line+'\n')
 
-args = config.parse_arguments()
-args.fac = int(args.use_bidirection) + 1
-
-
 with tf.Graph().as_default():
   with tf.name_scope('test'):
     test_args = copy.deepcopy(args)
     test_args.mode = 'test'
   with tf.variable_scope('model', reuse=None):
-    test_model = CNN_model(args=test_args)
+    if args.model_type == 'RNN':
+      test_model = RNN_model(args=test_args)
+    elif args.model_type == 'CNN':
+      test_model = CNN_model(args=test_args)
 
   config = tf.ConfigProto()
   config.gpu_options.allow_growth = True

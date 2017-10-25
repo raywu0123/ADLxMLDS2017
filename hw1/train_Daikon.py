@@ -8,17 +8,18 @@ import copy
 from model_Daikon import RNN_model, CNN_model
 import config
 import random
+from os.path import join
 from tensorflow.contrib import keras
 
 def load_data(mode):
   path = ''
   if mode == 'train':
-    path = './data/trainframes.npy'
-    file = open('./data/labels.npy', 'rb')
+    path = join(args.data_dir, 'trainframes.npy')
+    file = open(join(args.data_dir, 'labels.npy'), 'rb')
     labels = np.load(file)
     file.close()
   elif mode == 'test':
-    path = './data/testframes.npy'
+    path = join(args.data_dir, 'testframes.npy')
     labels = None
 
   file = open(path, 'rb')
@@ -66,7 +67,10 @@ if __name__ == '__main__':
       train_args.mode = 'train'
 
       with tf.variable_scope('model', reuse=None, initializer=initializer) as scope:
-        train_model = CNN_model(args=train_args)
+        if args.model_type == 'RNN':
+          train_model = RNN_model(args=train_args)
+        elif args.model_type == 'CNN':
+          train_model = CNN_model(args=train_args)
         scope.reuse_variables()
 
     config = tf.ConfigProto()

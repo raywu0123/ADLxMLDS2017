@@ -13,23 +13,24 @@ dft_save_model_secs = 120
 dft_learning_rate = 0.0001
 dft_decay_steps=10000
 dft_decay_rate= 0.99
-dft_train_file = 'data/trainframes.npy'
+
 dft_log_dir = 'logs'
+dft_data_dir = './data'
 dft_n_class = 48
 dft_window_size = 128
 dft_dim = 69
 dft_valid_ratio = 0.1
 
-dft_get_weights = True
-dft_weights_file = 'RNN_weights.pickle'
 dft_cnn_layer_num = 1
-dft_test_file = 'data/testframes.npy'
+
 dft_pred_file = 'submission/pred.csv'
 dft_filter_num = 12
 dft_kernel_size = 2
 dft_pool_size = 2
 dft_test_num = 500 # number of test data
 dft_vote_num = 10 #number of frames to strip off from window
+
+dft_model_type = 'RNN'
 
 def parse_arguments():
 
@@ -89,12 +90,6 @@ def parse_arguments():
   argparser.add_argument('-sms', '--save_model_secs', type=int,
                          default=dft_save_model_secs, help='save model for '
                          'every SAVE_MODEL_SECS seconds (default:%(default)s)')
-  argparser.add_argument('-trf', '--train_file', type=str,
-                         default=dft_train_file, help='input training filename '
-                         '(default:%(default)s)')
-  argparser.add_argument('-tef', '--test_file', type=str,
-                         default=dft_test_file, help='test filename '
-                         '(default:%(default)s)')
   argparser.add_argument('-pf', '--pred_file', type=str,
                          default=dft_pred_file, help='filename for submission '
                          '(default:%(default)s)')
@@ -105,12 +100,11 @@ def parse_arguments():
                           help='use bidirectional rnn (default:False)')
   argparser.add_argument('--valid_ratio', type=float,
                           default=dft_valid_ratio, help='Ratio of validation data (default: %(default)s)')
-  argparser.add_argument('--get_weights', type=bool,
-                          default=dft_get_weights, help = 'Program will output weights of all options if True.')
-  argparser.add_argument('--weights_file', type=str,
-                         default=dft_weights_file, help='default name of weights file.')
   argparser.add_argument('--n_class', type=int, default=dft_n_class)
   argparser.add_argument('--window_size', type=int, default=dft_window_size)
   argparser.add_argument('--dim', type=int, default=dft_dim)
-  argparser.add_argument('--vote_num', type=int,default=dft_vote_num)
+  argparser.add_argument('--vote_num', type=int, default=dft_vote_num)
+  argparser.add_argument('--data_dir', type=str, default=dft_data_dir)
+  argparser.add_argument('--model_type', type=str, default=dft_model_type)
+
   return argparser.parse_args()
