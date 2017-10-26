@@ -14,18 +14,18 @@
 	{\let\newpage\relax\maketitle}
 	\section{Model Description}
 		\subsection{RNN Model}
-			圖中縱方向為feature的長度.
-			經過兩層RNN layer之後再通過Fully Connected Layer產生frame-wise phone 判斷.
 			\begin{figure}[h]
 				\includegraphics[width=\linewidth]{2LayerLSTM.png}
 				\caption{兩層的 RNN Model}
 			\end{figure}
+			圖中縱方向為feature的長度.
+			經過兩層RNN layer之後再通過Fully Connected Layer產生frame-wise phone 判斷.
 		\subsection{CNN Model}		
 			\begin{figure}[h!]
 				\includegraphics[width=\linewidth]{CNN_model.png}
 				\caption{CNN Model}
 			\end{figure}
-			
+			CNN Model的後半部和RNN Model一樣.前段使用兩個convolution layer和maxpooling layer, 為了把其中一個dimension變成window size要再做reshape.我覺得對時間軸maxpooling可能丟失太多資訊所以也試過沒有maxpooling, 但效果比較不好.
 	\section{Boosting Performance}
 		\subsection{後處理}
 			\begin{enumerate}
@@ -55,11 +55,14 @@
 			\end{enumerate}
 		\subsection{參數試驗}
 			\begin{enumerate}
-				\item 不同RNN cell:
-				\item RNN 層數:
-				\item Bidirection:
+				\item 不同RNN cell: BasicGRU和BasicLSTM Cell表現都差不多
+				\item RNN 層數: 發現2層的收歛性比較好
+				\item Bidirection: 
+				為了比較固定參數量兩種model的表現, 在使用Bidirection的時候的RNN latent dimension都是正常的一半.出乎意料的就算在RNN model, 用Bidirectional RNN完全沒有提昇表現.
 				\item Window Size :
+				實驗發現32以下的window size在validation acc和loss表現比較不好.超過50之後表現都差不多.原因應該就和要刪除前段和後段類似.
 				\item 刪掉不確定的prediction :
+				因為原本的prediction是沒有正規化的,所以我取通過softmax機率加總為一的prediction, 設定不同的threshold, 刪掉不確定的prediction. 實驗發現表現都沒有刪除前段和後段的方法好.
 			\end{enumerate}
 		\subsection{Results}
 			\begin{tabular}{|l|c|c|}
@@ -69,6 +72,7 @@
 				Validation Accuracy	& 69 \% 	& 72 \% 	\\\hline
 				Kaggle Public Score & 12.2 		& 9.6 		\\\hline
 			\end{tabular}\\\\
+			兩種model大約都花一個小時就訓練完, 但也代表這兩個model都很快就overfit, 是一個待解決的問題.
 		
 		
 \end{document}

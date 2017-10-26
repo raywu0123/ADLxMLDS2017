@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.99992 (TeX Live 2015/Debian) (preloaded format=xelatex 2017.10.24)  25 OCT 2017 16:18
+This is XeTeX, Version 3.14159265-2.6-0.99992 (TeX Live 2015/Debian) (preloaded format=xelatex 2017.10.24)  26 OCT 2017 22:10
 entering extended mode
  restricted \write18 enabled.
  Source specials enabled.
@@ -920,27 +920,22 @@ File: images/2LayerLSTM.png Graphic file (type QTm)
  <use  "images/2LayerLSTM.png" >
 File: images/CNN_model.png Graphic file (type QTm)
 
-<use  "images/CNN_model.png" >
+<use  "images/CNN_model.png" > [1
+
+]
 
 LaTeX Font Warning: Font shape `EU1/ARPLUMingCN(0)/bx/n' undefined
 (Font)              using `EU1/ARPLUMingCN(0)/m/n' instead on input line 30.
 
-[1
-
-] [2]
+[2]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 65.
+(Font)              <12> on input line 68.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 65.
+(Font)              <8> on input line 68.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 65.
+(Font)              <6> on input line 68.
 
-Underfull \hbox (badness 10000) in paragraph at lines 65--72
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 65--72
+Underfull \hbox (badness 10000) in paragraph at lines 68--76
 
  []
 
