@@ -23,7 +23,7 @@ save_model_secs=120
 model_type='seq2seq'
 
 
-echo
+echo 'Cloning logs'
 git clone https://gitlab.com/raywu0123/ADLxMLDS_Hw2.git
 
 echo 'Running inference for Special Mission'
