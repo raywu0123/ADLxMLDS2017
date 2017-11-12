@@ -3,6 +3,7 @@
 data_dir=$1
 output_file=$2
 log_dir='./ADLxMLDS_Hw2/seq2seq_logs'
+preprocess_dir='./preprocess'
 
 vocab_emb_dim=300
 video_emb_dim=1024
@@ -26,8 +27,14 @@ model_type='seq2seq'
 echo 'Cloning logs'
 git clone https://gitlab.com/raywu0123/ADLxMLDS_Hw2.git
 
-echo 'Running inference for Special Mission'
+echo 'Preprocessing'
+    python3 preprocess.py \
+        --data_dir      $data_dir   \
+        --preprocess_dir    $preprocess_dir \
+        --vocab_emb_dim       $vocab_emb_dim    \
+        --max_sent_len  $max_sent_len
 
+echo 'Running inference for Special Mission'
 python3 test.py \
       --batch_size      $batch_size  \
       --info_epoch      $info_epoch    \

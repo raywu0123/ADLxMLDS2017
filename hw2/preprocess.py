@@ -27,6 +27,7 @@ def load_dict():
     for id, line in enumerate(file):
       dict[line.strip('\n')] = id
   return dict
+
 def train_wv():
   sent_lens = []
   all_words = []
