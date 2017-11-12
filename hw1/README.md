@@ -1,5 +1,5 @@
-# ADLxMLDS2017 hw1 - Sequence Labeling
-
+# ADLxMLDS 2017 Fall
+## HW1 - Sequence Labeling
 
 ### Data Directory structure
 ```
@@ -16,24 +16,25 @@
             fbank/
                 test.ark
                 train.ark
+        ...other files
 ```
 ## Usage
 ### Preprocessing
-Run the following command under `./hw1` directory.
+Run the following command under `hw1` directory.
 The program will generate `trainframes.npy` and `labels.npy`
 or `testframes.npy` under `./data`
 ```
 bash go.sh [pretrain] [pretest] 
 ```
 ### Training
-Run the following command under `./hw1` directory.  
+Run the following command under `hw1` directory.  
 The program will automatically save logs to `./logs`, and also handles crashes.
 ```
 bash go.sh train 
 ```
 You may tune the parameters in side this script.
 ### Testing
-Run the following command under `./hw1` directory.  
+Run the following command under `hw1` directory.  
 The program will restore the model from saved logs and generate prediction.
 ```
 bash go.sh test
