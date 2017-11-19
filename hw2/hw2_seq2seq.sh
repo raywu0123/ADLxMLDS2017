@@ -25,7 +25,9 @@ save_model_secs=120
 model_type='seq2seq'
 
 echo 'Cloning logs'
-git clone https://gitlab.com/raywu0123/hw2_FINAL_logs.git
+wget https://gitlab.com/raywu0123/hw2_FINAL_logs/repository/master/archive.tar.gz
+
+mv hw2_FINAL_logs-master* hw2_FINAL_logs
 
 #echo 'Preprocessing'
 #    python3 preprocess.py \
