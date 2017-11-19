@@ -49,6 +49,3 @@ if __name__ == '__main__':
       global_step = sess.run(test_model.step)
       print('global step = {}'.format(global_step))
       pred = run_inference(sess, test_model, inference_batch, special_ids)
-      if not args.special and not args.test_mode == 'peer_review':
-        scores = calc_bleu(args.output_file)
-        print('avg_bleu: ', scores)

@@ -18,7 +18,7 @@ dct = open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r', encoding='utf8')
 args.vocab_size = len(dct)
 
 video_ids = []
-with open(os.path.join(args.data_dir, 'testing_id.txt')) as file:
+with open(os.path.join(args.data_dir, args.test_mode+'_id.txt')) as file:
   for line in file:
     video_ids.append(line.strip('\n'))
 
@@ -90,9 +90,9 @@ def run_inference(sess, test_model, batch, special_id=()):
 
   with open(args.output_file, 'w+') as file:
     for idx, video_name in enumerate(video_ids):
-      if len(special_id) == 0 or (len(special_id) != 0 and video_name in special_id):
-        line = video_name + ',' + int2string(pred[idx]) + '\n'
-        file.write(line)
+      # if len(special_id) == 0 or (len(special_id) != 0 and video_name in special_id):
+      line = video_name + ',' + int2string(pred[idx]) + '\n'
+      file.write(line)
 
   return pred
 

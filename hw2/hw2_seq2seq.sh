@@ -3,11 +3,11 @@
 data_dir=$1
 test_output_file=$2
 peer_output_file=$3
-log_dir='./ADLxMLDS_Hw2/seq2seq_logs'
+log_dir='./hw2_FINAL_logs/logs_FINAL'
 preprocess_dir='./preprocess'
 
 vocab_emb_dim=300
-video_emb_dim=1024
+video_emb_dim=512
 max_sent_len=46
 batch_size=100
 info_epoch=1
@@ -20,12 +20,12 @@ decay_rate=0.99
 max_epoch=200000
 max_grad_norm=1
 rnn_layer_num=1
-rnn_type=1 # 0: LSTM, 1: GRU
+rnn_type=0 # 0: LSTM, 1: GRU
 save_model_secs=120
 model_type='seq2seq'
 
 echo 'Cloning logs'
-git https://gitlab.com/raywu0123/hw2_FINAL_logs.git
+git clone https://gitlab.com/raywu0123/hw2_FINAL_logs.git
 
 #echo 'Preprocessing'
 #    python3 preprocess.py \
@@ -54,7 +54,7 @@ python3 test.py \
       --model_type      $model_type     \
       --data_dir        $data_dir   \
       --output_file     $peer_output_file    \
-      --test_mode       'peer review'
+      --test_mode       'peer_review'
 
 echo 'Running Testing mode'
 python3 test.py \
