@@ -26,6 +26,7 @@ model_type='seq2seq'
 
 echo 'Cloning logs'
 wget https://gitlab.com/raywu0123/hw2_FINAL_logs/repository/master/archive.tar.gz
+tar -zxvf archive.tar.gz
 
 mv hw2_FINAL_logs-master* hw2_FINAL_logs
 
