@@ -6,7 +6,7 @@ dft_preprocess_dir = './preprocess'
 dft_max_sent_len = 46
 
 dft_vocab_emb_dim = 300
-dft_video_emb_dim = 512
+dft_video_emb_dim = 1024
 
 dft_output_file = './test_outputs.txt'
 dft_model_type = 'seq2seq'
@@ -14,7 +14,7 @@ dft_batch_size = 100
 dft_frame_num = 80
 dft_feat_num = 4096
 dft_init_scale = 0.1
-dft_log_dir = './logs'
+dft_log_dir = './logs_FINAL'
 dft_save_model_secs = 120
 dft_rnn_type = 1
 dft_rnn_layer_num = 1
@@ -27,7 +27,7 @@ dft_max_epoch = 1200
 dft_info_epoch = 1
 dft_enc_dim = 512
 dft_dec_dim = 512
-dft_tao = 200
+dft_tao = 50
 dft_test_mode = 'testing'
 
 def parse_arguments():

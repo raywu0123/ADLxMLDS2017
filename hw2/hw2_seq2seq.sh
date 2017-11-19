@@ -25,14 +25,14 @@ save_model_secs=120
 model_type='seq2seq'
 
 echo 'Cloning logs'
-git clone https://gitlab.com/raywu0123/ADLxMLDS_Hw2.git
+git https://gitlab.com/raywu0123/hw2_FINAL_logs.git
 
-echo 'Preprocessing'
-    python3 preprocess.py \
-        --data_dir      $data_dir   \
-        --preprocess_dir    $preprocess_dir \
-        --vocab_emb_dim       $vocab_emb_dim    \
-        --max_sent_len  $max_sent_len
+#echo 'Preprocessing'
+#    python3 preprocess.py \
+#        --data_dir      $data_dir   \
+#        --preprocess_dir    $preprocess_dir \
+#        --vocab_emb_dim       $vocab_emb_dim    \
+#        --max_sent_len  $max_sent_len
 
 echo 'Running Peer-Review mode'
 python3 test.py \

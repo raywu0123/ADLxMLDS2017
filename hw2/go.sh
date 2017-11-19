@@ -3,7 +3,7 @@
 echo "Usage : ./go.sh [preprocess] [train] [test]"
 
 data_dir='./MLDS_hw2_data'
-log_dir='./logs_2'
+log_dir='./logs_FINAL'
 preprocess_dir='./preprocess'
 
 vocab_emb_dim=300
@@ -14,15 +14,15 @@ info_epoch=1
 init_scale=0.1
 keep_prob=1
 learning_rate=0.001
-decay_steps=50
+decay_steps=100
 decay_rate=0.99
 
 max_epoch=1000
 max_grad_norm=1
 rnn_layer_num=1
-rnn_type=1 # 0: LSTM, 1: GRU
+rnn_type=0 # 0: LSTM, 1: GRU
 save_model_secs=120
-model_type='S2VT'
+model_type='seq2seq'
 
 
 for var in "$@"
