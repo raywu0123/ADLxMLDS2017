@@ -7,7 +7,7 @@ from tqdm import tqdm
 import tensorflow as tf
 import config
 import pickle
-
+from utils import int2string
 # Generate int_caption.pkl s
 
 args = config.parse_arguments()
@@ -23,7 +23,7 @@ if not os.path.exists(args.preprocess_dir):
 
 def load_dict():
   dict={}
-  with open(os.path.join(args.preprocess_dir, 'vocab.txt')) as file:
+  with open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r', encoding='utf8') as file:
     for id, line in enumerate(file):
       dict[line.strip('\n')] = id
   return dict
@@ -52,7 +52,7 @@ def train_wv():
   vocabs = ['PAD', 'BOS', 'EOS', 'UNK'] + [vocab for vocab in vocabs]
   print(len(vocabs))
   dct = defaultdict(lambda: UNK)
-  with open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'w') as f:
+  with open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'w', encoding='utf8') as f:
     for i, vocab in enumerate(vocabs):
       f.write(vocab + '\n')
       dct[vocab] = i
@@ -89,7 +89,6 @@ for mode in modes:
               unk_count += 1
           else:
             int_caption[idx] = dict[word]
-
         int_captions.append((int_caption, len(pro_sent)))
 
       filename_captions_map[label['id']] = int_captions

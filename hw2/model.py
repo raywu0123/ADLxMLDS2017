@@ -1,11 +1,11 @@
 import tensorflow as tf
 from tensorflow.contrib import seq2seq
 from tensorflow.python.layers.core import Dense
-
+import math
 class S2VT_model():
   def __init__(self, args):
     self.__dict__ = args.__dict__.copy()
-    rnn_cells = self.initialize()
+    rnn_cells, W_E = self.initialize()
     self.total_len = self.frame_num + self.max_sent_len - 1
     self._step = tf.contrib.framework.get_or_create_global_step()
 
@@ -13,7 +13,7 @@ class S2VT_model():
       self._video_holder = tf.placeholder(tf.float32, [None, self.frame_num, self.feat_num])
       self._caption_holder = tf.placeholder(tf.int32, [None, self.max_sent_len])
       self._len_holder = tf.placeholder(tf.int32, [None])
-      self._logits = self.get_logits(rnn_cells)
+      self._logits = self.get_logits(rnn_cells, W_E)
       self._pred = tf.argmax(self._logits, 2)
       self._loss = self.calc_loss()
       self._eval = self.optimize()
@@ -25,11 +25,11 @@ class S2VT_model():
         name = '  '.join('{}'.format(v) for v in _var.name.split('/'))
         print('{:85} {}'.format(name, _var.get_shape()))
 
-  def get_logits(self, rnn_cells):
+  def get_logits(self, rnn_cells, W_E):
     with tf.variable_scope('encoder'):
       enc_outputs = self.encoder(rnn_cells)
     with tf.variable_scope('decoder'):
-      logits = self.decoder(rnn_cells, enc_outputs)
+      logits = self.decoder(rnn_cells, enc_outputs, W_E)
 
     return logits
 
@@ -49,11 +49,8 @@ class S2VT_model():
                                                      dtype=tf.float32)
     return enc_outputs
 
-  def decoder(self, rnn_cells, dec_inputs):
+  def decoder(self, rnn_cells, dec_inputs, W_E):
     target_input = self._caption_holder[:, :-1]  # start from <BOS>
-
-    with tf.variable_scope('word_embed'):
-      W_E = tf.get_variable('word_embed', [self.vocab_size, self.vocab_emb_dim])
 
     with tf.variable_scope('word_decode'):
       W_D = tf.get_variable('word_decode', [self.dec_dim, self.vocab_size])
@@ -77,9 +74,8 @@ class S2VT_model():
     rand = tf.random_uniform([self.total_len], dtype=tf.float32)
     rand_ta = tf.TensorArray(dtype=tf.float32, size=self.total_len)
     rand_ta = rand_ta.unstack(rand)
-    if not self.is_train():
-      self.sche_prob = 0.0
-    schedule_sample_prob = tf.constant(self.sche_prob, dtype=tf.float32, shape=[1, 1])
+
+    schedule_sample_prob = self.get_sche_prob()
 
     def dec_loop_fn(time, cell_output, cell_state, loop_state):
       def input_fn():
@@ -146,7 +142,13 @@ class S2VT_model():
       return tf.contrib.rnn.MultiRNNCell([rnn_cell(fac)
                                           for _ in range(self.rnn_layer_num)])
 
-    return rnn_cells
+
+    W_E = tf.get_variable('W_E', [self.vocab_size, self.vocab_emb_dim],
+                          dtype=tf.float32)
+    self.embed = tf.placeholder(tf.float32, [self.vocab_size, self.vocab_emb_dim])
+    self.embed_init = W_E.assign(self.embed)
+
+    return rnn_cells, W_E
 
   def is_train(self):
     return self.mode == 'train'
@@ -197,6 +199,14 @@ class S2VT_model():
     else:
       assert('Undefined mode!')
 
+  def get_sche_prob(self):
+    if not self.is_train():
+      schedule_sample_prob = tf.constant(0.0, dtype=tf.float32, shape=[1, 1])
+    else:
+      float_step = tf.cast(self._step, dtype=tf.float32)
+      schedule_sample_prob = tf.reshape(tf.exp(-float_step/self.tao), [1, 1])
+    return schedule_sample_prob
+
   @property
   def loss(self): return self._loss
 
@@ -220,12 +230,9 @@ class S2VT_model():
 
 
 class seq2seq_model(S2VT_model):
-  def get_logits(self, rnn_cells):
+  def get_logits(self, rnn_cells, W_E):
     source_seq_embedded = self._video_holder  # shape=(batch_size, 80, 4096)
-    W_E = embedding_matrix = tf.get_variable(
-          name="embedding_matrix",
-          shape=[self.vocab_size, self.vocab_emb_dim],
-          dtype=tf.float32)
+    embedding_matrix = W_E
 
     decoder_input_embedded = tf.nn.embedding_lookup(embedding_matrix, self.caption_holder)  # shape=(2, 4, 5)
     enc_seq_len = tf.constant(self.frame_num, dtype=tf.int32, shape=[self.batch_size])
@@ -235,7 +242,9 @@ class seq2seq_model(S2VT_model):
       sequence_length=enc_seq_len,
       dtype=tf.float32)
 
-    sampling_prob = tf.Variable(self.sche_prob, dtype=tf.float32, name='sampling_prob')  ## inference = 1.0
+
+    ## inference = 1.0
+    sampling_prob = 1.0 - self.get_sche_prob()[0, 0]
     seq_len = tf.constant(self.max_sent_len, dtype=tf.int32, shape=[self.batch_size])
     helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
       decoder_input_embedded,
@@ -250,10 +259,10 @@ class seq2seq_model(S2VT_model):
     output_layer = Dense(self.vocab_size)
     dec_cell = rnn_cells(self.enc_dim)
     tiled_encoder_outputs = seq2seq.tile_batch(encoder_outputs, multiplier=beam_width)
-    attention_mechanism = seq2seq.BahdanauAttention(num_units=self.enc_dim, memory=tiled_encoder_outputs)
+    attention_mechanism = seq2seq.LuongAttention(num_units=self.enc_dim, memory=tiled_encoder_outputs)
     attention_cell = seq2seq.AttentionWrapper(dec_cell, attention_mechanism, self.enc_dim//2)
-    dec_init_state = attention_cell.zero_state(dtype=tf.float32, batch_size=self.batch_size*beam_width)
 
+    dec_init_state = attention_cell.zero_state(dtype=tf.float32, batch_size=self.batch_size*beam_width)
     if True:
       decoder = seq2seq.BasicDecoder(
         cell=attention_cell,
@@ -264,7 +273,7 @@ class seq2seq_model(S2VT_model):
       decoder = seq2seq.BeamSearchDecoder(
         cell=attention_cell,
         embedding=W_E,
-        start_tokens=tf.constant(1, dtype=tf.int32,shape=[self.batch_size]),
+        start_tokens=tf.constant(1, dtype=tf.int32, shape=[self.batch_size]),
         end_token=2,
         beam_width=beam_width,
         initial_state=dec_init_state,

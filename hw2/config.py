@@ -6,7 +6,7 @@ dft_preprocess_dir = './preprocess'
 dft_max_sent_len = 46
 
 dft_vocab_emb_dim = 300
-dft_video_emb_dim = 1024
+dft_video_emb_dim = 512
 
 dft_output_file = './test_outputs.txt'
 dft_model_type = 'seq2seq'
@@ -23,11 +23,12 @@ dft_keep_prob = 1.
 dft_learning_rate = 0.001
 dft_decay_steps = 1000
 dft_decay_rate = 0.99
-dft_max_epoch = 200000
+dft_max_epoch = 1200
 dft_info_epoch = 1
 dft_enc_dim = 512
 dft_dec_dim = 512
-dft_sche_prob = 0.5
+dft_tao = 200
+dft_test_mode = 'testing'
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
@@ -60,7 +61,10 @@ def parse_arguments():
   parser.add_argument('--info_epoch', type=int, default=dft_info_epoch)
   parser.add_argument('--enc_dim', type=int, default=dft_enc_dim)
   parser.add_argument('--dec_dim', type=int, default=dft_dec_dim)
-  parser.add_argument('--sche_prob', type=float, default=dft_sche_prob)
+  parser.add_argument('--tao', type=int, default=dft_tao)
   parser.add_argument('--use_bidirection', action='store_true')
+  parser.add_argument('--test_mode', type=str, default=dft_test_mode)
   parser.add_argument('--special', action='store_true')
+  parser.add_argument('--aug', action='store_true')
+
   return parser.parse_args()

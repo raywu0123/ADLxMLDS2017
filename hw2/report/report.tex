@@ -1,0 +1,83 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage{xeCJK}  % xelatex 中文
+\setCJKmainfont{AR PL UMing CN}
+\usepackage{titling}
+\setlength{\droptitle}{-4cm}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
+\title{ADLxMLDS 2017 Fall\\HW2 - Video Captioning}
+
+\author{B05901189 吳祥叡}
+\begin{document}
+	{\let\newpage\relax\maketitle}
+	\section{Model Description}
+		\subsection{S2VT}
+			\begin{figure}[h!]
+				\includegraphics[width=\linewidth]{S2VT_arch.png}
+			\end{figure}
+			在S2VT model中有嘗試用scheduled sampling.
+		\subsection{seq2seq}		
+			\begin{figure}[h!]
+				\includegraphics[width=\linewidth]{seq2seq_arch.png}
+			\end{figure}
+			圖為Neural Machine Translation的seq2seq模型, 將前面輸入換成vgg抽出的feature即可用在這次作業.\\
+			在這個seq2seq model中有嘗試用attention, scheduled sampling, beam-search.
+	\section{Attention Mechanism}
+		\subsection{如何實做}
+			用tensorflow.contrib的seq2seq library可以選用Bandanau和Luong Attention.
+		\subsection{結果比較}
+		 用seq2seq model上實驗發現luong attention最穩定,bahdanau attention變動較大但平均來看表現和luong差不多. \\
+		 另外比較沒有attention發現attention mechanism使BLEU有顯著的提昇.
+		 \begin{figure}[ht]
+		 	\begin{minipage}[b]{0.5\linewidth}
+		 		\centering
+		 		\includegraphics[scale=0.5]{attention_compare_bleu.png}
+		 		\caption{BLEU}
+		 		\label{fig:figure1}
+		 	\end{minipage}
+		 	\hspace{0.5cm}
+		 	\begin{minipage}[b]{0.5\linewidth}
+		 		\centering
+		 		\includegraphics[scale=0.5]{attention_compare_loss.png}
+		 		\caption{Loss}
+		 		\label{fig:figure2}
+		 	\end{minipage}
+		 \end{figure}
+	\section{Experiment Settings and Results}
+		\subsection{實驗設置}
+			\begin{enumerate}
+				\item 運算資源 : 有兩個 K80 GPU 的 Azure NC6 
+				\item 使用套件 : Tensorflow
+				\item schedule sampling 函數: prob = $exp^{-n_{epochs}/200}$
+				\item word embedding dimension: 300
+				\item rnn cell type : GRUCell
+			\end{enumerate}
+		\subsection{實驗結果}
+			\subsubsection{不同word embedding初始化}
+				比較使用Glove 或零初始化word embedding.發現 Glove 可以讓model更穩定,但是後期表現差不多.
+				\begin{figure}[h!]
+					\centering
+					\includegraphics[scale=0.5]{wv_compare.png}
+					\caption{Glove vs Zero} 
+				\end{figure}
+			\subsubsection{S2VT vs seq2seq}
+				比較參數量大致相同的S2VT和seq2seq model(Luong Attention).
+				可以看到seq2seq比s2vt表現好一點點.
+				\begin{figure}[h]
+					\centering
+					\includegraphics[scale=0.5]{s2vt_vs_seq2seq.png}
+					\caption{S2VT vs seq2seq} 
+				\end{figure}
+			\subsubsection{加入雜訊}
+				因為每個影片有多個參考解答,原先我是在產生batch的時候隨機挑出一個, 但是發現這樣不太合理, 因為model看過的影片總共只有一千多個, 很容易overfit.所以我才會想在影片裡加上一點雜訊, 想要達到類似image augmentation的效果.
+				但是我們拿到的是已經抽好feature的4096維的vector, 不能學image做旋轉平移鏡射. 所以我採取的是將某些frame糊化的方法.\\
+				也就是random取其中約20個frame, 將他們和前後兩個frame平均.\\
+				\begin{figure}[h!]
+					\centering
+					\includegraphics[scale=0.5]{aug_compare.png}
+					\caption{with or without noise} 
+				\end{figure}
+				
+\end{document}

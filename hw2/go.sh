@@ -3,26 +3,26 @@
 echo "Usage : ./go.sh [preprocess] [train] [test]"
 
 data_dir='./MLDS_hw2_data'
-log_dir='./seq2seq_logs'
+log_dir='./logs_2'
 preprocess_dir='./preprocess'
 
 vocab_emb_dim=300
-video_emb_dim=1024
+video_emb_dim=512
 max_sent_len=46
 batch_size=100
 info_epoch=1
 init_scale=0.1
 keep_prob=1
 learning_rate=0.001
-decay_steps=20
+decay_steps=50
 decay_rate=0.99
 
-max_epoch=200000
+max_epoch=1000
 max_grad_norm=1
 rnn_layer_num=1
 rnn_type=1 # 0: LSTM, 1: GRU
 save_model_secs=120
-model_type='seq2seq'
+model_type='S2VT'
 
 
 for var in "$@"
@@ -53,7 +53,8 @@ do
       --save_model_secs $save_model_secs    \
       --vocab_emb_dim   $vocab_emb_dim  \
       --video_emb_dim   $video_emb_dim  \
-      --model_type      $model_type
+      --model_type      $model_type     \
+      --'aug'
   elif [ "$var" == "test" ]
   then
     python3 test.py \

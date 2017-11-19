@@ -14,7 +14,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 args = config.parse_arguments()
 args.fac = int(args.use_bidirection) + 1
 
-dct = open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r').read().splitlines()
+dct = open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r', encoding='utf8').read().splitlines()
 args.vocab_size = len(dct)
 
 video_ids = []
@@ -35,6 +35,15 @@ def run_epoch(sess, model, args, captions, opt):
   # batch_captions.shape = [batch_size, max_sent_len]
 
   def get_batch(captions):
+    def aug_vgg(vgg, ratio):
+      Rshift_vgg = vgg.take(range(1, args.frame_num+1), mode='wrap', axis=0)
+      Lshift_vgg = vgg.take(range(-1, args.frame_num-1), mode='wrap', axis=0)
+      probs = np.random.choice([1.0, 1/3], size=args.frame_num, p=[1-ratio, ratio])
+
+      aug = (vgg.T*probs).T + (Rshift_vgg.T*((1-probs)/2)).T + (Lshift_vgg.T*((1-probs)/2)).T
+      return aug
+
+
     dir_list = list(captions.keys())
     batch_vggs = np.zeros([args.batch_size, args.frame_num, args.feat_num])
     batch_captions = np.zeros([args.batch_size, args.max_sent_len], dtype=int)
@@ -43,13 +52,16 @@ def run_epoch(sess, model, args, captions, opt):
     for idx in range(args.batch_size):
       video_name = random.choice(dir_list)
       (caption, length) = random.choice(captions[video_name])
-      vgg = np.load(os.path.join(args.data_dir, 'training_data/feat/' + video_name + '.npy'))
+      vgg = np.load(os.path.join(args.data_dir, 'training_data/feat/', video_name + '.npy'))
       batch_captions[idx] = caption
-      batch_vggs[idx] = vgg
+      if args.aug:
+        batch_vggs[idx] = aug_vgg(vgg, 0.25)
+      else:
+        batch_vggs[idx] = vgg
       batch_lens[idx] = length
+
     return batch_vggs, batch_captions, batch_lens
 
-  #   '''Runs the model for one epoch'''
   batch_vggs, batch_captions, batch_lens = get_batch(captions)
   fetches = {}
   fetches['loss'] = model.loss
@@ -68,7 +80,7 @@ def run_epoch(sess, model, args, captions, opt):
 
   return vals['loss'], example
 
-def run_inference(sess, test_model, batch, special_id=[]):
+def run_inference(sess, test_model, batch, special_id=()):
   batch_vggs, batch_captions, batch_lens = batch
 
   feed_dict = {test_model.video_holder: batch_vggs,
@@ -106,16 +118,30 @@ if __name__ == '__main__':
                              save_model_secs=args.save_model_secs)
 
     with sv.managed_session(config=config) as sess:
+      wordvec = np.load(os.path.join(args.preprocess_dir, 'my_wv.npy'))
+      sess.run(train_model.embed_init, feed_dict={train_model.embed: wordvec})
       train_captions = load_data('training')
       global_step = sess.run(train_model.step)
       print('global step = {}'.format(global_step))
       inference_batch = get_inference_batch(video_ids)
+
+      train_loss_rec = []
+      test_bleu_rec = []
       for i in range(global_step+1, args.max_epoch+1):
         train_loss, example = run_epoch(sess, train_model, train_args, train_captions, opt=True)
+        print(int2string(example[0]))
+        print(int2string(example[1]))
+        train_loss_rec.append(train_loss)
         if i % args.info_epoch == 0:
           print('Epoch: %d, TrainLoss: %.5f' % (i, train_loss))
           train_model.set_mode('test')
           pred = run_inference(sess, train_model, inference_batch)
-          avg_score = calc_bleu(args.output_file)
-          print('avg_bleu: ', avg_score)
+          print(int2string(pred[0]))
+          scores = calc_bleu(args.output_file)
+          test_bleu_rec.append(scores)
+          print('bleu: ', scores)
           train_model.set_mode('train')
+
+      np.save('train_loss.npy', np.array(train_loss_rec))
+      np.save('test_bleu.npy', np.array(test_bleu_rec))
+      print('Record npy files saved.')

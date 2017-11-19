@@ -94,20 +94,23 @@ def geometric_mean(precisions):
     return (reduce(operator.mul, precisions)) ** (1.0 / len(precisions))
 
 
-def BLEU(s,t):
-    score = 0.  
-    count = 0
-    candidate = [s.strip()]
-    references = [[t.strip()]] 
-    precisions = []
-    pr, bp = count_ngram(candidate, references, 1)
-    precisions.append(pr)
-    score = geometric_mean(precisions) * bp
-    return score
+def BLEU(s, t, flag=False):
+  score = 0.
+  count = 0
+  candidate = [s.strip()]
+  if flag:
+    references = [[t[i].strip()] for i in range(len(t))]
+  else:
+    references = [[t.strip()]]
+  precisions = []
+  pr, bp = count_ngram(candidate, references, 1)
+  precisions.append(pr)
+  score = geometric_mean(precisions) * bp
+  return score
 
 
 def int2string(int_pred):
-    dct = open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r').read().splitlines()
+    dct = open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r', encoding='utf8').read().splitlines()
     word2int = dict([[word, i] for i, word in enumerate(dct)])
     int2word = dict([[i, word] for i, word in enumerate(dct)])
     words = []
@@ -134,16 +137,25 @@ def calc_bleu(output):
         for caption in item['caption']:
             score_per_video.append(BLEU(result[item['id']],caption))
         bleu.append(sum(score_per_video)/len(score_per_video))
-    average = sum(bleu) / len(bleu)
-    return average
+    score_1 = sum(bleu) / len(bleu)
 
-def get_inference_batch(video_ids):
-  batch_vggs = np.zeros([args.batch_size, args.frame_num, args.feat_num])
-  batch_captions = np.zeros([args.batch_size, args.max_sent_len], dtype=int)
-  batch_lens = np.zeros([args.batch_size], dtype=int)
+    bleu=[]
+    for item in test:
+        score_per_video = []
+        captions = [x.rstrip('.') for x in item['caption']]
+        score_per_video.append(BLEU(result[item['id']],captions,True))
+        bleu.append(score_per_video[0])
+    score_2 = sum(bleu) / len(bleu)
+    return (score_1, score_2)
 
+def get_inference_batch(video_ids, mode='testing'):
+  batch_size = len(video_ids)
+  batch_vggs = np.zeros([batch_size, args.frame_num, args.feat_num])
+  batch_captions = np.zeros([batch_size, args.max_sent_len], dtype=int)
+  batch_lens = np.zeros([batch_size], dtype=int)
+  feat_dir = mode +'_data/feat'
   for idx, video_name in enumerate(video_ids):
-    vgg = np.load(os.path.join(args.data_dir, 'testing_data/feat/' + video_name + '.npy'))
+    vgg = np.load(os.path.join(args.data_dir, feat_dir, video_name + '.npy'))
     batch_vggs[idx] = vgg
   return (batch_vggs, batch_captions, batch_lens)
 

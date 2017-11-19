@@ -15,7 +15,7 @@ args = config.parse_arguments()
 args.fac = int(args.use_bidirection) + 1
 args.test_num = 100
 
-dct = open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r').read().splitlines()
+dct = open(os.path.join(args.preprocess_dir, 'vocab.txt'), 'r', encoding='utf8').read().splitlines()
 args.vocab_size = len(dct)
 video_ids = []
 
@@ -25,10 +25,11 @@ special_ids = ['klteYv1Uv9A_27_33.avi',
                'JntMAcTlOF0_50_70.avi',
                'tJHUH9tpqPg_113_118.avi']
 
-
-with open(os.path.join(args.data_dir, 'testing_id.txt')) as file:
+video_id_file = args.test_mode + '_id.txt'
+with open(os.path.join(args.data_dir, video_id_file)) as file:
   for line in file:
     video_ids.append(line.strip('\n'))
+args.batch_size = len(video_ids)
 
 if __name__ == '__main__':
   with tf.Graph().as_default() as graph:
@@ -48,6 +49,6 @@ if __name__ == '__main__':
       global_step = sess.run(test_model.step)
       print('global step = {}'.format(global_step))
       pred = run_inference(sess, test_model, inference_batch, special_ids)
-      if not args.special:
-        avg_score = calc_bleu(args.output_file)
-        print('avg_bleu: ', avg_score)
+      if not args.special and not args.test_mode == 'peer_review':
+        scores = calc_bleu(args.output_file)
+        print('avg_bleu: ', scores)
