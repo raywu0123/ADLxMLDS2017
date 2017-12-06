@@ -27,10 +27,10 @@
 ### Preprocessing
 Run the following command under `hw2` directory.
 This part pretrains a gensim word2vec model on the given caption labels.
-The program will generate
-`(training/testing)_int_captions.pkl`  
-`vocab.txt`  
-`wv.npy` under `./preprocess`
+The program will generate  
+`(training/testing)_int_captions.pkl `
+&`vocab.txt `
+&`wv.npy ` under `./preprocess`
 
 ```
 bash go.sh preprocess

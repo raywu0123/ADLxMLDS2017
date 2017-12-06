@@ -1,10 +1,10 @@
-This is XeTeX, Version 3.14159265-2.6-0.99992 (TeX Live 2015/Debian) (preloaded format=xelatex 2017.10.24)  19 NOV 2017 17:28
+This is XeTeX, Version 3.14159265-2.6-0.99992 (TeX Live 2015/Debian) (preloaded format=xelatex 2017.10.24)  20 NOV 2017 21:31
 entering extended mode
  restricted \write18 enabled.
- Source specials enabled.
+ file:line:error style messages enabled.
  %&-line parsing enabled.
-**report.tex
-(./report.tex
+**/home/ray/PycharmProjects/ADLxMLDS2017/hw2/report/report
+(/home/ray/PycharmProjects/ADLxMLDS2017/hw2/report/report.tex
 LaTeX2e <2016/02/01>
 Babel <3.9q> and hyphenation patterns for 81 language(s) loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -931,18 +931,18 @@ LaTeX Font Warning: Font shape `EU1/ARPLUMingCN(0)/bx/n' undefined
 File: images/attention_compare_bleu.png Graphic file (type QTm)
  <use  "images/attention_compare_bleu.png" >
 Overfull \hbox (36.2639pt too wide) in paragraph at lines 36--37
- [][][] 
+ [][] 
  []
 
 File: images/attention_compare_loss.png Graphic file (type QTm)
 <use  "images/attention_compare_loss.png" >
 Overfull \hbox (36.2639pt too wide) in paragraph at lines 43--44
- [][][] 
+ [][] 
  []
 
 
 Overfull \hbox (19.44237pt too wide) in paragraph at lines 34--47
-[][][]   [] 
+[][]   [] 
  []
 
 LaTeX Font Info:    External font `cmex10' loaded for size
@@ -961,14 +961,17 @@ File: images/aug_compare.png Graphic file (type QTm)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
  ) 
 Here is how much of TeX's memory you used:
- 17375 strings out of 493638
- 347769 string characters out of 6146795
+ 17376 strings out of 493638
+ 347917 string characters out of 6146795
  339440 words of memory out of 5000000
  20707 multiletter control sequences out of 15000+600000
  7425 words of font info for 43 fonts, out of 8000000 for 9000
  1328 hyphenation exceptions out of 8191
- 54i,9n,72p,10444b,288s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 54i,9n,72p,10490b,288s stack positions out of 5000i,500n,10000p,200000b,80000s
 
 Output written on report.pdf (4 pages).
