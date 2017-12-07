@@ -1,9 +1,12 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from agent_dir.agent import Agent
 import numpy as np
 from matplotlib import pyplot as plt
 import tensorflow as tf
 from collections import deque
 import random
+
 
 class Agent_DQN(Agent):
     def __init__(self, env, args):
