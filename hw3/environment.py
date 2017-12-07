@@ -45,7 +45,7 @@ class Environment(object):
         return np.array(observation)
 
 
-    def step(self,action):
+    def step(self, action):
         '''
         When running dqn:
             observation: np.array
@@ -65,7 +65,7 @@ class Environment(object):
                 whether reach the end of the episode?
         '''
         if not self.env.action_space.contains(action):
-            raise ValueError('Ivalid action!!')
+            raise ValueError('Invalid action!!')
 
         if self.do_render:
             self.env.render()

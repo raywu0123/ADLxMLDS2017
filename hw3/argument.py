@@ -12,5 +12,8 @@ def add_arguments(parser):
     parser.add_argument('--log_dir', type=str, default='./dqn_logs')
     parser.add_argument('--save_model_secs', type=int, default=120)
     parser.add_argument('--batch_size', type=int, default=32, help='batch size for training')
-    parser.add_argument('--learning_rate', type=float, default=0.01, help='learning rate for training')
+    parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for training')
+    parser.add_argument('--memSize', type=int, default=200000)
+    parser.add_argument('--GAMMA', type=float, default=0.9)
+    parser.add_argument('--epsilon', type=float, default=0.1)
     return parser
