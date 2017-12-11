@@ -7,6 +7,7 @@ You DO NOT need to upload this file
 import argparse
 from test import test
 from environment import Environment
+import atexit
 
 
 def parse():
@@ -26,6 +27,8 @@ def parse():
     args = parser.parse_args()
     return args
 
+def clean():
+    print('now leaving.')
 
 def run(args):
     if args.train_pg:
@@ -33,6 +36,7 @@ def run(args):
         env = Environment(env_name, args)
         from agent_dir.agent_pg import Agent_PG
         agent = Agent_PG(env, args)
+        atexit.register(agent.clean)
         agent.train()
 
     if args.train_dqn:
@@ -40,6 +44,7 @@ def run(args):
         env = Environment(env_name, args, atari_wrapper=True)
         from agent_dir.agent_dqn import Agent_DQN
         agent = Agent_DQN(env, args)
+        atexit.register(agent.clean)
         agent.train()
 
     if args.test_pg:

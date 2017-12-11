@@ -148,12 +148,16 @@ def calc_bleu(output):
     score_2 = sum(bleu) / len(bleu)
     return (score_1, score_2)
 
-def get_inference_batch(video_ids, mode='testing'):
+def get_inference_batch(video_ids):
   batch_size = len(video_ids)
   batch_vggs = np.zeros([batch_size, args.frame_num, args.feat_num])
   batch_captions = np.zeros([batch_size, args.max_sent_len], dtype=int)
   batch_lens = np.zeros([batch_size], dtype=int)
-  feat_dir = mode +'_data/feat'
+  if args.test_mode == 'testing':
+    feat_dir = 'testing_data/feat'
+  elif args.test_mode == 'peer_review':
+    feat_dir = 'peer_review/feat'
+
   for idx, video_name in enumerate(video_ids):
     vgg = np.load(os.path.join(args.data_dir, feat_dir, video_name + '.npy'))
     batch_vggs[idx] = vgg
