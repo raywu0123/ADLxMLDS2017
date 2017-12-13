@@ -18,19 +18,17 @@ def add_arguments(parser):
     # parser.add_argument('--log_dir', type=str, default='./dqn_logs')
     # parser.add_argument('--batch_size', type=int, default=32, help='batch size for training')
     # parser.add_argument('--learning_rate', type=float, default=1e-4, help='learning rate for training')
-    # parser.add_argument('--lr_decay_rate', type=float, default=0.96)
+    # parser.add_argument('--lr_decay_rate', type=float, default=0.99)
     # parser.add_argument('--memSize', type=int, default=10000)
     # parser.add_argument('--GAMMA', type=float, default=0.99)
     # parser.add_argument('--explore_rate', type=float, default=0.1)
     # parser.add_argument('--screen_height', type=int, default=84)
     # parser.add_argument('--memLog', type=str, default='./dqn_logs/memLog')
 
-    parser.add_argument('--max_episode', type=int, default=1000000)
-    parser.add_argument('--max_epoch', type=int, default=5)
+    parser.add_argument('--max_episode', type=int, default=10000)
     parser.add_argument('--log_dir', type=str, default='./pg_logs')
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='learning rate for training')
-    parser.add_argument('--lr_decay_rate', type=float, default=1.0)
+    parser.add_argument('--lr_decay_rate', type=float, default=0.99)
     parser.add_argument('--GAMMA', type=float, default=0.99)
-    parser.add_argument('--explore_rate', type=float, default=0.1)
 
     return parser

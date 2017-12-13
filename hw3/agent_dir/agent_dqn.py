@@ -56,7 +56,7 @@ class Agent_DQN(Agent):
                 self.main_anime, self.main_action, self.main_Q_pred = self.build_model()
                 self.main_Q_tar = tf.placeholder(tf.float32, [None], name='Q_tar')
                 self.loss = tf.losses.mean_squared_error(self.main_Q_tar, self.main_Q_pred)
-                self.optimize = tf.train.RMSPropOptimizer(learning_rate=self.args.learning_rate).minimize(self.loss)
+                self.optimize = tf.train.RMSPropOptimizer(learning_rate=self.args.learning_rate, decay=self.args.lr_decay_rate).minimize(self.loss)
                 tf.add_to_collection("Q_tar", self.main_Q_tar)
                 tf.add_to_collection("loss", self.loss)
                 tf.add_to_collection("optimize", self.optimize)
@@ -109,6 +109,10 @@ class Agent_DQN(Agent):
             neg = alphas * (_x - abs(_x)) * 0.5
 
             return pos + neg
+
+        def leaky_relu(x, alpha=0.01):
+            return tf.maximum(x, alpha * x)
+
         anime_holder = tf.placeholder(tf.float32,
                                          [None, 84, 84, 4]
                                          ,name='anime_holder')
@@ -129,7 +133,8 @@ class Agent_DQN(Agent):
         concat = tf.concat([flatten, action_holder], axis=1)
 
         # dense1 = tf.layers.dense(concat, units=512, activation=tf.nn.relu)
-        dense1 = tf.layers.dense(concat, units=512, activation=parametric_relu)
+        # dense1 = tf.layers.dense(concat, units=512, activation=parametric_relu)
+        dense1 = tf.layers.dense(concat, units=512, activation=leaky_relu)
         Q_pred = tf.reshape(tf.layers.dense(dense1, units=1), [-1], name='Q_pred')
 
 
@@ -230,12 +235,15 @@ class Agent_DQN(Agent):
             action: int
                 the predicted action from trained model
         """
-        if self.env_step > (self.args.max_step // 10):
-            explore_rate = 0.05
+        if test:
+            explore_rate = 0.005
         else:
-            explore_rate = 1.0 - (1.0-0.05) * self.env_step / (self.args.max_step // 10)
+            if self.env_step > (self.args.max_step // 10):
+                explore_rate = 0.05
+            else:
+                explore_rate = 1.0 - (1.0-0.05) * self.env_step / (self.args.max_step // 10)
 
-        if test or random.uniform(0, 1) > explore_rate:
+        if random.uniform(0, 1) > explore_rate:
             action_batch = np.diag([1]*self.action_space)
             anime_batch = np.repeat(np.expand_dims(observation, axis=0), repeats=self.action_space, axis=0)
             Q_vals = self.sess.run(self.main_Q_pred,
