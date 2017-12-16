@@ -38,6 +38,9 @@ class Agent_PG(Agent):
         """
         super(Agent_PG, self).__init__(env)
         self.args = args
+        if self.args.test_pg:
+            self.args.log_dir = './logs_collection/pg_logs'
+        print(vars(args))
         self.rewards = []
         self.n_episode = 0
         self.action_space = 3

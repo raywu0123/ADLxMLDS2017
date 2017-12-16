@@ -9,6 +9,10 @@ import random
 import sys
 import pickle
 
+'''
+Dueling DQN Implementation
+'''
+
 class Agent_DQN(Agent):
 
     def __init__(self, env, args):
@@ -18,8 +22,9 @@ class Agent_DQN(Agent):
         """
         super(Agent_DQN, self).__init__(env)
         self.args = args
-        self.replayMem = replayMem(args.memSize, mode='basic')
-
+        if self.args.test_dqn:
+            self.args.log_dir = './logs_collection/dqn_logs_lrelu2'
+        print(vars(args))
         self.action_space = env.action_space.n
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
@@ -28,9 +33,6 @@ class Agent_DQN(Agent):
         self.env_step = 0
         self.rewards = []
         self.sess = tf.Session(config=self.config)
-        if args.test_dqn:
-            #you can load your model here
-            print('loading trained model')
 
         model_path = os.path.join(self.args.log_dir, 'model.meta')
         if os.path.isfile(model_path):
@@ -45,6 +47,9 @@ class Agent_DQN(Agent):
             self.main_Q_tar =tf.get_collection("Q_tar", scope=scope)[0]
             self.loss = tf.get_collection("loss", scope=scope)[0]
             self.optimize = tf.get_collection("optimize", scope=scope)[0]
+            if self.args.memType == 'prioritized':
+                self.abs_error = tf.get_collection("abs_error", scope=scope)[0]
+                self.ISWeights_holder = tf.get_collection("ISWeights_holder", scope=scope)[0]
 
             scope = "target_network"
             self.tar_anime = tf.get_collection("anime_holder", scope=scope)[0]
@@ -55,11 +60,20 @@ class Agent_DQN(Agent):
             with tf.variable_scope('main_network'):
                 self.main_anime, self.main_action, self.main_Q_pred = self.build_model()
                 self.main_Q_tar = tf.placeholder(tf.float32, [None], name='Q_tar')
-                self.loss = tf.losses.mean_squared_error(self.main_Q_tar, self.main_Q_pred)
+                if self.args.memType == 'basic':
+                    self.loss = tf.losses.mean_squared_error(self.main_Q_tar, self.main_Q_pred)
+                elif self.args.memType == 'prioritized':
+                    self.ISWeights_holder = tf.placeholder(tf.float32, [None], name='ISWeights')
+                    self.loss = tf.reduce_mean(self.ISWeights_holder*tf.squared_difference(self.main_Q_tar, self.main_Q_pred))
+                    tf.add_to_collection("ISWeights_holder", self.ISWeights_holder)
+
+                self.abs_error = tf.abs(self.main_Q_tar - self.main_Q_pred)
                 self.optimize = tf.train.RMSPropOptimizer(learning_rate=self.args.learning_rate, decay=self.args.lr_decay_rate).minimize(self.loss)
+
                 tf.add_to_collection("Q_tar", self.main_Q_tar)
                 tf.add_to_collection("loss", self.loss)
                 tf.add_to_collection("optimize", self.optimize)
+                tf.add_to_collection("abs_error", self.abs_error)
 
             with tf.variable_scope('target_network'):
                 self.tar_anime, self.tar_action, self.tar_Q_pred = self.build_model()
@@ -76,8 +90,15 @@ class Agent_DQN(Agent):
                 self.env_step = logs['env_step']
                 self.rewards = logs['rewards']
 
+        if self.args.memType == 'basic':
+            self.replayMem = replayMem(args.memSize, mode='basic')
+        elif self.args.memType == 'prioritized':
+            self.replayMem = replayMem(args.memSize, mode='prioritized')
         if not self.args.test_dqn:
-            self.replayMem.load(self.args.memLog)
+            if os.path.isfile(self.args.memLog):
+                self.replayMem.load(self.args.memLog)
+            else:
+                print('Creating new replayMem')
             for var in self.main_vars:
                 print(var)
             print('')
@@ -99,7 +120,11 @@ class Agent_DQN(Agent):
 
     def build_model(self):
         def swish(x):
-            return x*tf.nn.sigmoid(x)
+            betas = tf.get_variable('beta', x.get_shape()[-1],
+                                     initializer=tf.constant_initializer(0.0),
+                                     dtype=tf.float32)
+
+            return x*tf.nn.sigmoid(betas*x)
 
         def parametric_relu(_x):
             alphas = tf.get_variable('alpha', _x.get_shape()[-1],
@@ -128,15 +153,10 @@ class Agent_DQN(Agent):
         conv3 = tf.layers.conv2d(conv2, filters=64, kernel_size=3, strides=1,
                                 padding='same', activation=tf.nn.relu)
 
-
         flatten = tf.reshape(conv3, [-1, 64*(11**2)])
         concat = tf.concat([flatten, action_holder], axis=1)
-
-        # dense1 = tf.layers.dense(concat, units=512, activation=tf.nn.relu)
-        # dense1 = tf.layers.dense(concat, units=512, activation=parametric_relu)
         dense1 = tf.layers.dense(concat, units=512, activation=leaky_relu)
         Q_pred = tf.reshape(tf.layers.dense(dense1, units=1), [-1], name='Q_pred')
-
 
         tf.add_to_collection('anime_holder', anime_holder)
         tf.add_to_collection('action_holder', action_holder)
@@ -158,7 +178,11 @@ class Agent_DQN(Agent):
         batch_actions = np.zeros([self.args.batch_size, self.action_space])
         batch_rewards = np.zeros([self.args.batch_size])
         batch_done = np.zeros([self.args.batch_size], dtype=bool)
-        batch = self.replayMem.sample(batch_size=self.args.batch_size)
+        if self.args.memType == 'basic':
+            batch = self.replayMem.sample(batch_size=self.args.batch_size)
+        elif self.args.memType == 'prioritized':
+            self.tree_idx, batch, self.ISWeights = self.replayMem.sample(batch_size=self.args.batch_size)
+
         for i in range(self.args.batch_size):
             batch_states[i] = batch[i][0]
             batch_nextstates[i] = batch[i][1]
@@ -175,9 +199,23 @@ class Agent_DQN(Agent):
     def get_maxQ(self, batch_nextstates):
         full_state = np.repeat(batch_nextstates, self.action_space, 0)
         all_actions = np.tile(np.diag([1]*self.action_space), [self.args.batch_size, 1])
-        all_Q = self.sess.run(self.tar_Q_pred, {self.tar_anime: full_state,
-                                                self.tar_action: all_actions})
-        max_Q = np.max(all_Q.reshape([self.args.batch_size, self.action_space]), 1)
+        if self.args.double:
+            all_Q = self.sess.run(self.main_Q_pred, {self.main_anime: full_state,
+                                                     self.main_action: all_actions})
+            max_Q_id = np.argmax(all_Q.reshape([self.args.batch_size, self.action_space]), 1)
+
+            ## Convert to one-hot
+            one_hot = np.zeros([self.args.batch_size, self.action_space])
+            for i in range(self.args.batch_size):
+                idx = max_Q_id[i]
+                one_hot[i][idx] = 1
+
+            max_Q = self.sess.run(self.tar_Q_pred, {self.tar_anime: batch_nextstates,
+                                                    self.tar_action: one_hot})
+        else:
+            all_Q = self.sess.run(self.tar_Q_pred, {self.tar_anime: full_state,
+                                                    self.tar_action: all_actions})
+            max_Q = np.max(all_Q.reshape([self.args.batch_size, self.action_space]), 1)
         return max_Q
 
     def copy_network(self, main_col, target_col, verbose=False):
@@ -214,7 +252,13 @@ class Agent_DQN(Agent):
                                      self.main_action: batch_actions,
                                      self.main_Q_tar: batch_targets}
 
-                        self.sess.run(self.optimize, feed_dict=feed_dict)
+                        if self.args.memType == 'basic':
+                            self.sess.run(self.optimize, feed_dict=feed_dict)
+                        elif self.args.memType == 'prioritized':
+                            feed_dict[self.ISWeights_holder] = self.ISWeights
+                            _, errors = self.sess.run([self.optimize, self.abs_error], feed_dict=feed_dict)
+                            self.replayMem.batch_update(self.tree_idx, errors)
+
                     if self.env_step % self.args.tar_update_freq == 0:
                         self.copy_network(self.main_vars, self.tar_vars)
                         self.saver.save(self.sess, os.path.join(self.args.log_dir, 'model'))
@@ -254,24 +298,61 @@ class Agent_DQN(Agent):
             return self.env.get_random_action()
 
 class replayMem():
+    epsilon = 0.01
+    alpha = 0.7
+    beta = 0.5
+    beta_increment_per_sampling = 0.001
+    abs_err_upper = 1.
+
     def __init__(self, max_size, mode='basic'):
         self.mode = mode
         self.max_size = max_size
         if self.mode == 'basic':
             self.container = deque(maxlen=max_size)
+        elif self.mode == 'prioritized':
+            self.container = SumTree(max_size)
 
     def sample(self, batch_size):
-        return random.sample(self.container, batch_size)
+        if self.mode == 'basic':
+            return random.sample(self.container, batch_size)
+        elif self.mode == 'prioritized':
+            b_idx, b_memory, ISWeights = \
+                np.empty((batch_size,), dtype=np.int32), \
+                [], \
+                np.empty((batch_size))
+
+            pri_seg = self.container.total_p / batch_size  # priority segment
+            self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])  # max = 1
+
+            min_prob = np.min(self.container.tree[-self.container.capacity:]) / self.container.total_p  # for later calculate ISweight
+            for i in range(batch_size):
+                a, b = pri_seg * i, pri_seg * (i + 1)
+                v = np.random.uniform(a, b)
+                idx, p, data = self.container.get_leaf(v)
+                prob = p / self.container.total_p
+                ISWeights[i] = np.power(prob / min_prob, -self.beta)
+                b_idx[i] = idx
+                b_memory.append(data)
+            return b_idx, b_memory, ISWeights
 
     def push(self, newDat):
         if self.mode == 'basic':
             self.container.append(newDat)
+        elif self.mode == 'prioritized':
+            max_p = np.max(self.container.tree[-self.max_size:])
+            if max_p == 0:
+                max_p = self.abs_err_upper
+            self.container.add(max_p, newDat)
 
-    def set_mode(self, mode):
-        self.mode = mode
+    def batch_update(self, tree_idx, abs_errors):
+        abs_errors += self.epsilon  # convert to abs and avoid 0
+        clipped_errors = np.minimum(abs_errors, self.abs_err_upper)
+        ps = np.power(clipped_errors, self.alpha)
+        for ti, p in zip(tree_idx, ps):
+            self.container.update(ti, p)
 
-    def is_full(self):
-        return len(self.container) == self.container.maxlen
+    # def set_mode(self, mode):
+    #     self.mode = mode
 
     def save(self, path):
         with open(path, 'wb+') as file:
@@ -289,3 +370,74 @@ class replayMem():
     @property
     def size(self):
         return len(self.container)
+
+
+class SumTree(object):
+    """
+    This SumTree code is modified version and the original code is from:
+    https://github.com/jaara/AI-blog/blob/master/SumTree.py
+
+    Story the data with it priority in tree and data frameworks.
+    """
+    data_pointer = 0
+
+    def __init__(self, capacity):
+        self.capacity = capacity  # for all priority values
+        self.tree = np.zeros(2 * capacity - 1)
+        # [--------------Parent nodes-------------][-------leaves to recode priority-------]
+        #             size: capacity - 1                       size: capacity
+        self.data = np.zeros(capacity, dtype=object)  # for all transitions
+        # [--------------data frame-------------]
+        #             size: capacity
+
+    def add(self, p, data):
+        tree_idx = self.data_pointer + self.capacity - 1
+        self.data[self.data_pointer] = data  # update data_frame
+        self.update(tree_idx, p)  # update tree_frame
+
+        self.data_pointer += 1
+        if self.data_pointer >= self.capacity:  # replace when exceed the capacity
+            self.data_pointer = 0
+
+    def update(self, tree_idx, p):
+        change = p - self.tree[tree_idx]
+        self.tree[tree_idx] = p
+        # then propagate the change through tree
+        while tree_idx != 0:    # this method is faster than the recursive loop in the reference code
+            tree_idx = (tree_idx - 1) // 2
+            self.tree[tree_idx] += change
+
+    def get_leaf(self, v):
+        """
+        Tree structure and array storage:
+
+        Tree index:
+             0         -> storing priority sum
+            / \
+          1     2
+         / \   / \
+        3   4 5   6    -> storing priority for transitions
+
+        Array type for storing:
+        [0,1,2,3,4,5,6]
+        """
+        parent_idx = 0
+        while True:     # the while loop is faster than the method in the reference code
+            cl_idx = 2 * parent_idx + 1         # this leaf's left and right kids
+            cr_idx = cl_idx + 1
+            if cl_idx >= len(self.tree):        # reach bottom, end search
+                leaf_idx = parent_idx
+                break
+            else:       # downward search, always search for a higher priority node
+                if v <= self.tree[cl_idx]:
+                    parent_idx = cl_idx
+                else:
+                    v -= self.tree[cl_idx]
+                    parent_idx = cr_idx
+
+        data_idx = leaf_idx - self.capacity + 1
+        return leaf_idx, self.tree[leaf_idx], self.data[data_idx]
+
+    @property
+    def total_p(self):
+        return self.tree[0]  # the root
