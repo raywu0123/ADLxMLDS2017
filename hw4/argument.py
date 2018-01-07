@@ -4,7 +4,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='./data')
     parser.add_argument('--test_txt', type=str, default='./test_txt.txt')
-    parser.add_argument('--log_dir', type=str, default='./logs')
+    parser.add_argument('--log_dir', type=str, default='./logs_10k')
     parser.add_argument('--save_img_dir', type=str, default='./imgs')
     parser.add_argument('--save_model_secs', type=int, default=120)
 

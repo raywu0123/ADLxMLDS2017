@@ -94,7 +94,7 @@ class GAN:
             tf.get_variable_scope().reuse_variables()
 
         input += tf.random_normal([self.args.batch_size, 64, 64, 3],
-                                  stddev=0.5)
+                                  stddev=0.1)
 
         conv1 = tf.layers.conv2d(input, 32, 5, 2, padding='same', name='conv1')
         lrelu1 = lrelu(tf.layers.batch_normalization(conv1, training=isTrain, name='batch0'))

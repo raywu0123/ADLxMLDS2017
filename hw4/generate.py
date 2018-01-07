@@ -33,8 +33,7 @@ if __name__ == '__main__':
     if not os.path.exists(args.save_img_dir):
         os.mkdir(args.save_img_dir)
     with tf.Graph().as_default() as graph:
-        initializer = tf.random_uniform_initializer(-args.init_scale, args.init_scale)
-        with tf.variable_scope('model', reuse=None, initializer=initializer) as scope:
+        with tf.variable_scope('model', reuse=None) as scope:
             model = GAN(args)
             scope.reuse_variables()
 
@@ -42,13 +41,11 @@ if __name__ == '__main__':
         config.gpu_options.allow_growth = True
         config.graph_options.optimizer_options.global_jit_level =\
         tf.OptimizerOptions.ON_1
-        sv = tf.train.Supervisor(logdir=args.log_dir,
-                             save_model_secs=args.save_model_secs)
-
+        sv = tf.train.Supervisor(logdir=args.log_dir)
         with sv.managed_session(config=config) as sess:
             with open(args.test_txt, 'r') as txt:
                 for line in txt:
-                    batch_noise = np.random.standard_normal([args.batch_size, args.noise_dim])
+                    batch_noise = np.random.standard_normal([args.batch_size, args.noise_dim])*0.7
                     id, feat = parse_txt(line)
                     batch_feat = arti_feats(args, feat)
                     generated_images = sess.run(model.fake_img,
