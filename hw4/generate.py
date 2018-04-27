@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from argument import parse_args
-from model import GAN
+from model import ACGAN as GAN
 import os
 import scipy.misc as misc
 from utils import*

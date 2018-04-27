@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def lrelu(x, alpha=0.1):
+def lrelu(x, alpha=0.01):
     return tf.maximum(x, alpha * x)
 
 import matplotlib.pyplot as plt
@@ -120,3 +120,37 @@ def arti_feats(args, colors=None):
             feats[i] = one_hot_feats(colors, args)
 
     return feats
+
+def batch_conv(inputs, filters, kernel_size, strides, padding, name, isTrain):
+    return lrelu(tf.layers.batch_normalization(tf.layers.conv2d(inputs,
+                                                          filters,
+                                                          kernel_size,
+                                                          strides,
+                                                          padding,
+                                                          name='conv' + name),
+                                         training=isTrain, name='batch'+ name))
+
+def batch_deconv(inputs, filters, kernel_size, strides, padding, name, isTrain):
+    return lrelu(tf.layers.batch_normalization(tf.layers.conv2d_transpose(inputs,
+                                                                    filters,
+                                                                    kernel_size,
+                                                                    strides,
+                                                                    padding,
+                                                                    name='deconv' + name),
+                                         training=isTrain, name='batch' + name))
+
+def conv(inputs, filters, kernel_size, strides, padding, name):
+    return lrelu(tf.layers.conv2d(inputs,
+                                  filters,
+                                  kernel_size,
+                                  strides,
+                                  padding,
+                                  name='conv' + name))
+
+def deconv(inputs, filters, kernel_size, strides, padding, name):
+    return lrelu(tf.layers.conv2d_transpose(inputs,
+                                            filters,
+                                            kernel_size,
+                                            strides,
+                                            padding,
+                                            name='deconv' + name))
